@@ -1,8 +1,9 @@
 import streamlit as st
 import pandas as pd
-import gspread
 import requests
-from google.oauth2.service_account import Credentials
+
+# ID de Publicação da sua Planilha (obtido da sua URL pubhtml)
+PUB_ID = "2PACX-1vRHCcyhfmA0iw5CKm-jcTqb1_VYoCdHpxWWkjTQJqJK7beldA0KRgLKveiEqxV0xJs_VfXh_pTI33rF"
 
 # --- CONFIGURAÇÃO DA PÁGINA ---
 st.set_page_config(
@@ -54,24 +55,15 @@ def get_tmdb_poster(title, media_type="movie"):
         pass
     return f"https://placehold.co/300x450/1c252f/FFF?text={title.replace(' ', '+')}"
 
-# --- CARREGAMENTO DO SHEETS ---
+# --- CARREGAMENTO DIRETO VIA CSV PÚBLICO ---
 @st.cache_data(ttl=300)
 def load_data(sheet_name):
     try:
-        scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+        # URL de exportação direta do Google Sheets publicado
+        sheet_encoded = requests.utils.quote(sheet_name)
+        url = f"https://docs.google.com/spreadsheets/d/e/{PUB_ID}/pub?single=true&output=csv&sheet={sheet_encoded}"
         
-        # Converte as credenciais tratando de forma absoluta qualquer variação de quebra de linha
-        creds_dict = dict(st.secrets["gcp_service_account"])
-        if "private_key" in creds_dict:
-            pk = str(creds_dict["private_key"])
-            pk = pk.replace("\\\\n", "\n").replace("\\n", "\n")
-            creds_dict["private_key"] = pk
-            
-        creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
-        client = gspread.authorize(creds)
-        spreadsheet = client.open("Procrastinação Organizada")
-        worksheet = spreadsheet.worksheet(sheet_name)
-        data = pd.DataFrame(worksheet.get_all_values())
+        data = pd.read_csv(url, header=None)
         
         if sheet_name == "LIVROS":
             df = data.iloc[3:, [1, 2, 3, 4]].copy()
@@ -93,7 +85,7 @@ def load_data(sheet_name):
             return df
 
     except Exception as e:
-        st.error(f"Erro ao carregar aba {sheet_name}: {e}")
+        st.error(f"Erro ao carregar {sheet_name}: {e}")
         return pd.DataFrame()
 
 # --- INTERFACE ---
@@ -130,8 +122,6 @@ with aba_livros:
                 st.caption(f"✍️ {row['Autor']} | {row['Gênero']}")
                 st.write(f"Status: **{row['Status']}**")
                 st.markdown("---")
-    else:
-        st.info("Aguardando dados da aba LIVROS...")
 
 # --- 2. ABA SÉRIES ---
 with aba_series:
@@ -155,8 +145,6 @@ with aba_series:
                 st.caption(f"📺 {row['Temporada']} ({row['Streaming']})")
                 st.write(f"Status: **{row['Status']}**")
                 st.markdown("---")
-    else:
-        st.info("Aguardando dados da aba SÉRIES...")
 
 # --- 3. ABA MARVEL ---
 with aba_marvel:
@@ -179,5 +167,3 @@ with aba_marvel:
                 is_checked = (str(row["Status"]).upper().strip() == "SIM")
                 st.checkbox("Assistido", value=is_checked, key=f"mcu_{idx}")
                 st.markdown("---")
-    else:
-        st.info("Aguardando dados da aba UNIVERSO MARVEL...")
