@@ -12,11 +12,13 @@ GIDS = {
     "UNIVERSO MARVEL": "1360927897"
 }
 
-TMDB_API_KEY = "34cfcdc95d19256cbdef1189f11f556"
+# TOKEN DE LEITURA DO TMDB (O texto longo do seu print)
+TMDB_BEARER_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIzNGNmY2RjOWVkMTkyNTZjYmRlZjExODlmMTFmNTU2Iiwic3ViIjI2MTA3NzA0MzMxMy45OTQ0OTQsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.QdiVx3r8QOy6ZdllcYKSbb6T1Bo7OFfRigcqws2QJ9Q"
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-    "Accept": "application/json"
+    "Authorization": f"Bearer {TMDB_BEARER_TOKEN}",
+    "Accept": "application/json",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
 }
 
 st.set_page_config(
@@ -42,7 +44,7 @@ st.markdown("""
 
 FALLBACK_IMG = "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&q=80"
 
-# --- BUSCA GOOGLE BOOKS ---
+# --- BUSCA GOOGLE BOOKS (LIVROS) ---
 @st.cache_data(ttl=86400)
 def get_book_cover(title, author=""):
     title_str = str(title).strip() if pd.notna(title) else ""
@@ -52,7 +54,7 @@ def get_book_cover(title, author=""):
     try:
         query = f"{title_str} {author}".strip()
         url = f"https://www.googleapis.com/books/v1/volumes?q={urllib.parse.quote(query)}&maxResults=1"
-        res = requests.get(url, headers=HEADERS, timeout=4).json()
+        res = requests.get(url, timeout=4).json()
         if "items" in res and len(res["items"]) > 0:
             links = res["items"][0].get("volumeInfo", {}).get("imageLinks", {})
             cover = links.get("thumbnail") or links.get("smallThumbnail")
@@ -63,21 +65,20 @@ def get_book_cover(title, author=""):
         
     return FALLBACK_IMG
 
-# --- BUSCA TMDB COM DUAL SEARCH (FILME + TV) ---
+# --- BUSCA TMDB USANDO BEARER TOKEN ---
 @st.cache_data(ttl=86400)
 def get_tmdb_poster(title, media_type="movie"):
     title_str = str(title).strip() if pd.notna(title) else ""
     if not title_str or title_str.lower() in ["nan", "none"]:
         return FALLBACK_IMG
     
-    # 1. Tenta buscar no TMDB
     try:
         type_clean = str(media_type).lower().strip()
         search_type = "tv" if any(x in type_clean for x in ["série", "serie", "tv"]) else "movie"
         encoded = urllib.parse.quote(title_str)
         
-        # Tentativa 1: Busca no tipo especificado
-        url = f"https://api.themoviedb.org/3/search/{search_type}?api_key={TMDB_API_KEY}&query={encoded}&language=pt-BR"
+        # Chamada com autenticação no cabeçalho
+        url = f"https://api.themoviedb.org/3/search/{search_type}?query={encoded}&language=pt-BR"
         res = requests.get(url, headers=HEADERS, timeout=4).json()
         
         if "results" in res and len(res["results"]) > 0:
@@ -85,9 +86,9 @@ def get_tmdb_poster(title, media_type="movie"):
             if poster_path:
                 return f"https://image.tmdb.org/t/p/w500{poster_path}"
 
-        # Tentativa 2: Se falhar (ex: marcou filme mas era série), tenta o outro tipo
+        # Backup invertendo o tipo (Filme <-> Série)
         alt_type = "movie" if search_type == "tv" else "tv"
-        url_alt = f"https://api.themoviedb.org/3/search/{alt_type}?api_key={TMDB_API_KEY}&query={encoded}&language=pt-BR"
+        url_alt = f"https://api.themoviedb.org/3/search/{alt_type}?query={encoded}&language=pt-BR"
         res_alt = requests.get(url_alt, headers=HEADERS, timeout=4).json()
         if "results" in res_alt and len(res_alt["results"]) > 0:
             poster_path = res_alt["results"][0].get("poster_path")
@@ -95,11 +96,6 @@ def get_tmdb_poster(title, media_type="movie"):
                 return f"https://image.tmdb.org/t/p/w500{poster_path}"
     except Exception:
         pass
-
-    # 2. Se o TMDB falhar, usa o Google Books como backup de imagem
-    backup_cover = get_book_cover(title_str)
-    if backup_cover != FALLBACK_IMG:
-        return backup_cover
 
     return FALLBACK_IMG
 
