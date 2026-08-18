@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import requests
 
-# ID de Publicação da sua Planilha (obtido da sua URL pubhtml)
+# ID de Publicação da Planilha
 PUB_ID = "2PACX-1vRHCcyhfmA0iw5CKm-jcTqb1_VYoCdHpxWWkjTQJqJK7beldA0KRgLKveiEqxV0xJs_VfXh_pTI33rF"
 
 # --- CONFIGURAÇÃO DA PÁGINA ---
@@ -12,7 +12,6 @@ st.set_page_config(
     layout="wide"
 )
 
-# Estilo Dark / Letterboxd
 st.markdown("""
 <style>
     .stApp { background-color: #14181c; color: #9ab; }
@@ -23,11 +22,15 @@ st.markdown("""
 
 TMDB_API_KEY = st.secrets.get("TMDB_API_KEY", "")
 
-# --- APIs DE CAPA ---
+# --- APIs DE CAPA (com tratamento estrito para strings) ---
 @st.cache_data(ttl=86400)
 def get_book_cover(title, author=""):
+    title_str = str(title) if pd.notna(title) else ""
+    author_str = str(author) if pd.notna(author) else ""
+    if not title_str.strip():
+        return "https://placehold.co/300x450/1c252f/FFF?text=Sem+Titulo"
     try:
-        query = f"{title} {author}".strip()
+        query = f"{title_str} {author_str}".strip()
         url = f"https://www.googleapis.com/books/v1/volumes?q={query}&maxResults=1"
         res = requests.get(url, timeout=5).json()
         if "items" in res and len(res["items"]) > 0:
@@ -37,15 +40,18 @@ def get_book_cover(title, author=""):
                 return cover.replace("http://", "https://")
     except Exception:
         pass
-    return f"https://placehold.co/300x450/1c252f/FFF?text={title.replace(' ', '+')}"
+    return f"https://placehold.co/300x450/1c252f/FFF?text={title_str.replace(' ', '+')}"
 
 @st.cache_data(ttl=86400)
 def get_tmdb_poster(title, media_type="movie"):
+    title_str = str(title) if pd.notna(title) else ""
+    if not title_str.strip():
+        return "https://placehold.co/300x450/1c252f/FFF?text=Sem+Titulo"
     if not TMDB_API_KEY:
-        return f"https://placehold.co/300x450/1c252f/FFF?text={title.replace(' ', '+')}"
+        return f"https://placehold.co/300x450/1c252f/FFF?text={title_str.replace(' ', '+')}"
     try:
         search_type = "tv" if str(media_type).lower() in ["série", "tv"] else "movie"
-        url = f"https://api.themoviedb.org/3/search/{search_type}?api_key={TMDB_API_KEY}&query={title}&language=pt-BR"
+        url = f"https://api.themoviedb.org/3/search/{search_type}?api_key={TMDB_API_KEY}&query={title_str}&language=pt-BR"
         res = requests.get(url, timeout=5).json()
         if "results" in res and len(res["results"]) > 0:
             poster_path = res["results"][0].get("poster_path")
@@ -53,35 +59,36 @@ def get_tmdb_poster(title, media_type="movie"):
                 return f"https://image.tmdb.org/t/p/w500{poster_path}"
     except Exception:
         pass
-    return f"https://placehold.co/300x450/1c252f/FFF?text={title.replace(' ', '+')}"
+    return f"https://placehold.co/300x450/1c252f/FFF?text={title_str.replace(' ', '+')}"
 
 # --- CARREGAMENTO DIRETO VIA CSV PÚBLICO ---
 @st.cache_data(ttl=300)
 def load_data(sheet_name):
     try:
-        # URL de exportação direta do Google Sheets publicado
         sheet_encoded = requests.utils.quote(sheet_name)
         url = f"https://docs.google.com/spreadsheets/d/e/{PUB_ID}/pub?single=true&output=csv&sheet={sheet_encoded}"
-        
         data = pd.read_csv(url, header=None)
         
         if sheet_name == "LIVROS":
             df = data.iloc[3:, [1, 2, 3, 4]].copy()
             df.columns = ["Título", "Autor", "Gênero", "Status"]
-            df = df[df["Título"].astype(str).str.strip() != ""]
+            df = df[df["Título"].fillna("").astype(str).str.strip() != ""]
+            df = df[~df["Título"].astype(str).str.upper().isin(["TÍTULO", "TITULO"])]
             return df
 
         elif sheet_name == "SÉRIES":
             df = data.iloc[3:, [0, 1, 2, 3]].copy()
             df.columns = ["Série", "Temporada", "Streaming", "Status"]
             df["Série"] = df["Série"].replace("", None).ffill()
-            df = df[df["Série"].astype(str).str.strip() != ""]
+            df = df[df["Série"].fillna("").astype(str).str.strip() != ""]
+            df = df[~df["Série"].astype(str).str.upper().isin(["SÉRIIE", "SÉRIE", "SERIE"])]
             return df
 
         elif sheet_name == "UNIVERSO MARVEL":
             df = data.iloc[2:, [0, 1, 2, 3]].copy()
             df.columns = ["Título", "Tipo", "Ano", "Status"]
-            df = df[df["Título"].astype(str).str.strip() != ""]
+            df = df[df["Título"].fillna("").astype(str).str.strip() != ""]
+            df = df[~df["Título"].astype(str).str.upper().isin(["TÍTULO", "TITULO"])]
             return df
 
     except Exception as e:
@@ -108,17 +115,17 @@ with aba_livros:
         st.progress(lidos / total if total > 0 else 0)
         st.divider()
 
-        generos = ["Todos"] + [g for g in df_l["Gênero"].unique() if g]
+        generos = ["Todos"] + [str(g) for g in df_l["Gênero"].dropna().unique() if str(g).strip()]
         gen_selected = st.selectbox("Filtrar por Gênero:", generos)
         if gen_selected != "Todos":
-            df_l = df_l[df_l["Gênero"] == gen_selected]
+            df_l = df_l[df_l["Gênero"].astype(str) == gen_selected]
 
         cols = st.columns(4)
         for idx, (_, row) in enumerate(df_l.head(24).iterrows()):
             with cols[idx % 4]:
                 cover_url = get_book_cover(row["Título"], row["Autor"])
                 st.image(cover_url, use_container_width=True)
-                st.subheader(row["Título"])
+                st.subheader(str(row["Título"]))
                 st.caption(f"✍️ {row['Autor']} | {row['Gênero']}")
                 st.write(f"Status: **{row['Status']}**")
                 st.markdown("---")
@@ -141,7 +148,7 @@ with aba_series:
             with cols_s[idx % 4]:
                 poster_url = get_tmdb_poster(row["Série"], media_type="tv")
                 st.image(poster_url, use_container_width=True)
-                st.subheader(row["Série"])
+                st.subheader(str(row["Série"]))
                 st.caption(f"📺 {row['Temporada']} ({row['Streaming']})")
                 st.write(f"Status: **{row['Status']}**")
                 st.markdown("---")
