@@ -3,7 +3,7 @@ import pandas as pd
 import requests
 import urllib.parse
 
-# ID da Planilha e Mapeamento dos GIDs
+# ID da Planilha e GIDs
 DOC_ID = "1Dq9BXjt9tbsdFQryC3NBYJTXvhHjZbtEGdG_ZXpWdp0"
 
 GIDS = {
@@ -12,6 +12,8 @@ GIDS = {
     "UNIVERSO MARVEL": "1360927897"
 }
 
+TMDB_API_KEY = "34cfcdc95d19256cbdef1189f11f556"
+
 # --- CONFIGURAÇÃO DA PÁGINA ---
 st.set_page_config(
     page_title="Procrastinação Organizada",
@@ -19,67 +21,66 @@ st.set_page_config(
     layout="wide"
 )
 
+# Estilização CSS uniforme
 st.markdown("""
 <style>
     .stApp { background-color: #14181c; color: #9ab; }
     h1, h2, h3, h4 { color: #ffffff !important; }
     .stProgress > div > div > div > div { background-color: #00e054; }
+    div[data-testid="stImage"] img {
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        object-fit: cover;
+        aspect-ratio: 2/3;
+        width: 100%;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-# Chave do TMDB inserida diretamente
-TMDB_API_KEY = "34cfcdc95d19256cbdef1189f11f556"
-
-# --- BUSCA DE CAPAS (LIVROS) ---
+# --- FUNÇÕES DE IMAGEM ---
 @st.cache_data(ttl=86400)
 def get_book_cover(title, author=""):
     title_str = str(title).strip() if pd.notna(title) else ""
     author_str = str(author).strip() if pd.notna(author) else ""
-    
     if not title_str:
-        return "https://placehold.co/300x450/1c252f/ffffff?text=Sem+Titulo"
+        return "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=500&auto=format&fit=crop&q=60"
     
     try:
         query = f"{title_str} {author_str}".strip()
-        encoded_query = urllib.parse.quote(query)
-        url = f"https://www.googleapis.com/books/v1/volumes?q={encoded_query}&maxResults=1"
-        res = requests.get(url, timeout=5).json()
-        
+        encoded = urllib.parse.quote(query)
+        url = f"https://www.googleapis.com/books/v1/volumes?q={encoded}&maxResults=1"
+        res = requests.get(url, timeout=3).json()
         if "items" in res and len(res["items"]) > 0:
-            image_links = res["items"][0].get("volumeInfo", {}).get("imageLinks", {})
-            cover = image_links.get("thumbnail") or image_links.get("smallThumbnail")
+            links = res["items"][0].get("volumeInfo", {}).get("imageLinks", {})
+            cover = links.get("thumbnail") or links.get("smallThumbnail")
             if cover:
                 return cover.replace("http://", "https://")
     except Exception:
         pass
-        
-    encoded_title = urllib.parse.quote(title_str[:20])
-    return f"https://placehold.co/300x450/1c252f/ffffff?text={encoded_title}"
+    
+    encoded_text = urllib.parse.quote(title_str)
+    return f"https://dummyimage.com/300x450/1c252f/ffffff.png&text={encoded_text}"
 
-# --- BUSCA DE PÔSTERES (FILMES E SÉRIES - TMDB) ---
 @st.cache_data(ttl=86400)
 def get_tmdb_poster(title, media_type="movie"):
     title_str = str(title).strip() if pd.notna(title) else ""
-    
     if not title_str:
-        return "https://placehold.co/300x450/1c252f/ffffff?text=Sem+Titulo"
+        return "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=500&auto=format&fit=crop&q=60"
     
-    if TMDB_API_KEY:
-        try:
-            search_type = "tv" if str(media_type).lower() in ["série", "tv", "serie"] else "movie"
-            encoded_title = urllib.parse.quote(title_str)
-            url = f"https://api.themoviedb.org/3/search/{search_type}?api_key={TMDB_API_KEY}&query={encoded_title}&language=pt-BR"
+    try:
+        search_type = "tv" if str(media_type).lower() in ["série", "tv", "serie"] else "movie"
+        encoded = urllib.parse.quote(title_str)
+        url = f"https://api.themoviedb.org/3/search/{search_type}?api_key={TMDB_API_KEY}&query={encoded}&language=pt-BR"
+        res = requests.get(url, timeout=3).json()
+        if "results" in res and len(res["results"]) > 0:
+            poster_path = res["results"][0].get("poster_path")
+            if poster_path:
+                return f"https://image.tmdb.org/t/p/w500{poster_path}"
+    except Exception:
+        pass
             
-            res = requests.get(url, timeout=5).json()
-            if "results" in res and len(res["results"]) > 0:
-                poster_path = res["results"][0].get("poster_path")
-                if poster_path:
-                    return f"https://image.tmdb.org/t/p/w500{poster_path}"
-        except Exception:
-            pass
-            
-    encoded_title = urllib.parse.quote(title_str[:20])
-    return f"https://placehold.co/300x450/1c252f/ffffff?text={encoded_title}"
+    encoded_text = urllib.parse.quote(title_str)
+    return f"https://dummyimage.com/300x450/1c252f/ffffff.png&text={encoded_text}"
 
 # --- CARREGAMENTO DE DADOS ---
 @st.cache_data(ttl=300)
@@ -115,24 +116,22 @@ def load_data(sheet_name):
         st.error(f"Erro ao carregar {sheet_name}: {e}")
         return pd.DataFrame()
 
-# --- INTERFACE ---
+# --- INTERFACE PRINCIPAL ---
 st.title("🍿 Procrastinação Organizada")
 st.caption("Seu Hub Pessoal de Entretenimento")
 
 aba_livros, aba_series, aba_marvel = st.tabs(["📚 Biblioteca Virtual", "📺 Tracker de Séries", "🦸 Universo Marvel"])
 
-# 1. LIVROS
+# 1. LIVROS (Padronizado igual à Marvel)
 with aba_livros:
     df_l = load_data("LIVROS")
     if not df_l.empty:
         lidos = len(df_l[df_l["Status"].astype(str).str.upper().str.strip() == "LIDO"])
-        total = len(df_l)
+        tot_l = len(df_l)
+        pct_l = int((lidos / tot_l) * 100) if tot_l > 0 else 0
         
-        c1, c2, c3 = st.columns(3)
-        c1.metric("Livros Lidos", lidos)
-        c2.metric("Total na Lista", total)
-        c3.metric("Progresso Geral", f"{(lidos/total)*100:.1f}%" if total > 0 else "0%")
-        st.progress(lidos / total if total > 0 else 0)
+        st.subheader(f"Biblioteca Virtual: {lidos}/{tot_l} lidos ({pct_l}%)")
+        st.progress(lidos / tot_l if tot_l > 0 else 0)
         st.divider()
 
         generos = ["Todos"] + [str(g) for g in df_l["Gênero"].dropna().unique() if str(g).strip()]
@@ -140,25 +139,27 @@ with aba_livros:
         if gen_selected != "Todos":
             df_l = df_l[df_l["Gênero"].astype(str) == gen_selected]
 
-        cols = st.columns(4)
-        for idx, (_, row) in enumerate(df_l.head(24).iterrows()):
-            with cols[idx % 4]:
+        cols_l = st.columns(4)
+        for idx, (_, row) in enumerate(df_l.iterrows()):
+            with cols_l[idx % 4]:
                 cover_url = get_book_cover(row["Título"], row["Autor"])
                 st.image(cover_url, use_container_width=True)
-                st.subheader(str(row["Título"]))
-                st.caption(f"✍️ {row['Autor']} | {row['Gênero']}")
-                st.write(f"Status: **{row['Status']}**")
+                st.write(f"**#{idx+1} - {row['Título']}**")
+                st.caption(f"✍️ {row['Autor']} | 🏷️ {row['Gênero']}")
+                is_lido = (str(row["Status"]).upper().strip() == "LIDO")
+                st.checkbox("Lido", value=is_lido, key=f"livro_{idx}")
                 st.markdown("---")
 
-# 2. SÉRIES
+# 2. SÉRIES (Padronizado igual à Marvel)
 with aba_series:
     df_s = load_data("SÉRIES")
     if not df_s.empty:
         fin = len(df_s[df_s["Status"].astype(str).str.upper().str.strip() == "FINALIZADA"])
-        tot = len(df_s)
+        tot_s = len(df_s)
+        pct_s = int((fin / tot_s) * 100) if tot_s > 0 else 0
         
-        st.subheader(f"Progresso de Séries: {fin}/{tot} Temporadas Finalizadas ({int(fin/tot*100) if tot > 0 else 0}%)")
-        st.progress(fin / tot if tot > 0 else 0)
+        st.subheader(f"Progresso de Séries: {fin}/{tot_s} Temporadas Finalizadas ({pct_s}%)")
+        st.progress(fin / tot_s if tot_s > 0 else 0)
         st.divider()
 
         series_unicas = df_s.drop_duplicates(subset=["Série"])
@@ -168,19 +169,21 @@ with aba_series:
             with cols_s[idx % 4]:
                 poster_url = get_tmdb_poster(row["Série"], media_type="tv")
                 st.image(poster_url, use_container_width=True)
-                st.subheader(str(row["Série"]))
-                st.caption(f"📺 {row['Temporada']} ({row['Streaming']})")
-                st.write(f"Status: **{row['Status']}**")
+                st.write(f"**#{idx+1} - {row['Série']}**")
+                st.caption(f"📺 {row['Temporada']} | 🍿 {row['Streaming']}")
+                is_finalizada = (str(row["Status"]).upper().strip() == "FINALIZADA")
+                st.checkbox("Finalizada", value=is_finalizada, key=f"serie_{idx}")
                 st.markdown("---")
 
-# 3. MARVEL
+# 3. UNIVERSO MARVEL (Padrão)
 with aba_marvel:
     df_m = load_data("UNIVERSO MARVEL")
     if not df_m.empty:
         ass = len(df_m[df_m["Status"].astype(str).str.upper().str.strip() == "SIM"])
         tot_m = len(df_m)
+        pct_m = int((ass / tot_m) * 100) if tot_m > 0 else 0
         
-        st.subheader(f"Maratona MCU: {ass}/{tot_m} assistidos ({int(ass/tot_m*100) if tot_m > 0 else 0}%)")
+        st.subheader(f"Maratona MCU: {ass}/{tot_m} assistidos ({pct_m}%)")
         st.progress(ass / tot_m if tot_m > 0 else 0)
         st.divider()
 
