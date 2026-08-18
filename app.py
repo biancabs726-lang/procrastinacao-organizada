@@ -26,7 +26,6 @@ st.set_page_config(
     layout="wide"
 )
 
-# Estilização CSS e Gerador de Card Elegante
 st.markdown("""
 <style>
     .stApp { background-color: #14181c; color: #9ab; }
@@ -42,13 +41,12 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- GERADOR DE CARD VISUAL QUANDO A API FALHAR ---
 def generate_card_url(title, bg_color="1e293b", text_color="ffffff"):
     clean_title = str(title).strip()[:25] if pd.notna(title) else "Entretenimento"
     encoded_text = urllib.parse.quote(clean_title)
     return f"https://dummyimage.com/400x600/{bg_color}/{text_color}.png&text={encoded_text}"
 
-# --- BUSCA GOOGLE BOOKS ---
+# --- BUSCA GOOGLE BOOKS COM CONEXÃO DIRETA SEM BLOQUEIO ---
 @st.cache_data(ttl=86400)
 def get_book_cover(title, author=""):
     title_str = str(title).strip() if pd.notna(title) else ""
@@ -57,10 +55,20 @@ def get_book_cover(title, author=""):
     
     try:
         query = f"{title_str} {author}".strip()
-        url = f"https://www.googleapis.com/books/v1/volumes?q={urllib.parse.quote(query)}&maxResults=1"
-        res = requests.get(url, headers=HEADERS, timeout=2).json()
-        if "items" in res and len(res["items"]) > 0:
-            links = res["items"][0].get("volumeInfo", {}).get("imageLinks", {})
+        url = f"https://openlibrary.org/search.json?q={urllib.parse.quote(query)}"
+        res = requests.get(url, timeout=3).json()
+        if "docs" in res and len(res["docs"]) > 0:
+            cover_i = res["docs"][0].get("cover_i")
+            if cover_i:
+                return f"https://covers.openlibrary.org/b/id/{cover_i}-L.jpg"
+    except Exception:
+        pass
+
+    try:
+        url_gb = f"https://www.googleapis.com/books/v1/volumes?q={urllib.parse.quote(query)}&maxResults=1"
+        res_gb = requests.get(url_gb, timeout=3).json()
+        if "items" in res_gb and len(res_gb["items"]) > 0:
+            links = res_gb["items"][0].get("volumeInfo", {}).get("imageLinks", {})
             cover = links.get("thumbnail") or links.get("smallThumbnail")
             if cover:
                 return cover.replace("http://", "https://")
@@ -69,7 +77,7 @@ def get_book_cover(title, author=""):
         
     return generate_card_url(title_str, bg_color="0f172a")
 
-# --- BUSCA TMDB ---
+# --- BUSCA TMDB COM ALTERNATIVA OPEN MEDIA DB ---
 @st.cache_data(ttl=86400)
 def get_tmdb_poster(title, media_type="movie"):
     title_str = str(title).strip() if pd.notna(title) else ""
@@ -82,7 +90,7 @@ def get_tmdb_poster(title, media_type="movie"):
         encoded = urllib.parse.quote(title_str)
         
         url = f"https://api.themoviedb.org/3/search/{search_type}?query={encoded}&language=pt-BR"
-        res = requests.get(url, headers=HEADERS, timeout=2).json()
+        res = requests.get(url, headers=HEADERS, timeout=3).json()
         
         if "results" in res and len(res["results"]) > 0:
             poster_path = res["results"][0].get("poster_path")
