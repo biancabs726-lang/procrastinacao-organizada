@@ -17,24 +17,7 @@ TMDB_BEARER_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIzNGNmY2RjOWVkMTkyNTZjYmRlZj
 HEADERS = {
     "Authorization": f"Bearer {TMDB_BEARER_TOKEN}",
     "Accept": "application/json",
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-}
-
-# Pôsteres estáticos garantidos para a Marvel
-MARVEL_POSTERS = {
-    "capitão américa: o primeiro vingador": "https://image.tmdb.org/t/p/w500/v9A2S9C5M0UjBClfIe53Qp30o86.jpg",
-    "agente carter": "https://image.tmdb.org/t/p/w500/9G1M936oG0J6eS6l5mS86vO0S22.jpg",
-    "capitã marvel": "https://image.tmdb.org/t/p/w500/x2LSRK2Cm7MZhjluni1msVJ3wDF.jpg",
-    "homem de ferro": "https://image.tmdb.org/t/p/w500/wyA8q95SUnmE24S19A6iR34jUqP.jpg",
-    "homem de ferro 2": "https://image.tmdb.org/t/p/w500/6A26U8E0QoK84p0E8v6A0uXf66N.jpg",
-    "thor": "https://image.tmdb.org/t/p/w500/prA309X649kS28oP4S36pQ2A9m6.jpg",
-    "os vingadores": "https://image.tmdb.org/t/p/w500/u334u7K0qU2sU0A8O8P5V5N4V8A.jpg",
-    "homem de ferro 3": "https://image.tmdb.org/t/p/w500/2L8Oq7mN5G424G4L0mS0M2Q38V6.jpg",
-    "thor: o mundo sombrio": "https://image.tmdb.org/t/p/w500/8X0W95a4R92K5M0mS0uX6oQ8U16.jpg",
-    "capitão américa: o soldado invernal": "https://image.tmdb.org/t/p/w500/84A12782oU2sU0A8O8P5V5N4V8A.jpg",
-    "guardiões da galáxia": "https://image.tmdb.org/t/p/w500/r7A0sA2sU0A8O8P5V5N4V8A.jpg",
-    "vingadores: era de ultron": "https://image.tmdb.org/t/p/w500/4gV8A0sA2sU0A8O8P5V5N4V8A.jpg",
-    "homem-formiga": "https://image.tmdb.org/t/p/w500/49A2S9C5M0UjBClfIe53Qp30o86.jpg"
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
 }
 
 st.set_page_config(
@@ -43,6 +26,7 @@ st.set_page_config(
     layout="wide"
 )
 
+# Estilização CSS e Gerador de Card Elegante
 st.markdown("""
 <style>
     .stApp { background-color: #14181c; color: #9ab; }
@@ -58,18 +42,23 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-FALLBACK_IMG = "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&q=80"
+# --- GERADOR DE CARD VISUAL QUANDO A API FALHAR ---
+def generate_card_url(title, bg_color="1e293b", text_color="ffffff"):
+    clean_title = str(title).strip()[:25] if pd.notna(title) else "Entretenimento"
+    encoded_text = urllib.parse.quote(clean_title)
+    return f"https://dummyimage.com/400x600/{bg_color}/{text_color}.png&text={encoded_text}"
 
+# --- BUSCA GOOGLE BOOKS ---
 @st.cache_data(ttl=86400)
 def get_book_cover(title, author=""):
     title_str = str(title).strip() if pd.notna(title) else ""
     if not title_str or title_str.lower() in ["nan", "none"]:
-        return FALLBACK_IMG
+        return generate_card_url("Livro")
     
     try:
         query = f"{title_str} {author}".strip()
         url = f"https://www.googleapis.com/books/v1/volumes?q={urllib.parse.quote(query)}&maxResults=1"
-        res = requests.get(url, timeout=3).json()
+        res = requests.get(url, headers=HEADERS, timeout=2).json()
         if "items" in res and len(res["items"]) > 0:
             links = res["items"][0].get("volumeInfo", {}).get("imageLinks", {})
             cover = links.get("thumbnail") or links.get("smallThumbnail")
@@ -78,27 +67,22 @@ def get_book_cover(title, author=""):
     except Exception:
         pass
         
-    return FALLBACK_IMG
+    return generate_card_url(title_str, bg_color="0f172a")
 
+# --- BUSCA TMDB ---
 @st.cache_data(ttl=86400)
 def get_tmdb_poster(title, media_type="movie"):
     title_str = str(title).strip() if pd.notna(title) else ""
-    title_clean = title_str.lower()
-    
-    # 1. Verifica se está no dicionário estático
-    for key, poster_url in MARVEL_POSTERS.items():
-        if key in title_clean:
-            return poster_url
-
     if not title_str or title_str.lower() in ["nan", "none"]:
-        return FALLBACK_IMG
+        return generate_card_url("Mídia")
     
-    # 2. Busca via API se não for um título estático conhecido
     try:
-        search_type = "tv" if any(x in str(media_type).lower() for x in ["série", "serie", "tv"]) else "movie"
+        type_clean = str(media_type).lower().strip()
+        search_type = "tv" if any(x in type_clean for x in ["série", "serie", "tv"]) else "movie"
         encoded = urllib.parse.quote(title_str)
+        
         url = f"https://api.themoviedb.org/3/search/{search_type}?query={encoded}&language=pt-BR"
-        res = requests.get(url, headers=HEADERS, timeout=3).json()
+        res = requests.get(url, headers=HEADERS, timeout=2).json()
         
         if "results" in res and len(res["results"]) > 0:
             poster_path = res["results"][0].get("poster_path")
@@ -107,8 +91,9 @@ def get_tmdb_poster(title, media_type="movie"):
     except Exception:
         pass
 
-    return FALLBACK_IMG
+    return generate_card_url(title_str, bg_color="1e1b4b" if "série" in str(media_type).lower() else "450a0a")
 
+# --- CARREGAMENTO DE DADOS ---
 @st.cache_data(ttl=300)
 def load_data(sheet_name):
     try:
