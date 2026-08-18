@@ -27,8 +27,8 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Tenta buscar a API Key dos secrets
-TMDB_API_KEY = st.secrets.get("TMDB_API_KEY", "").strip()
+# Chave do TMDB inserida diretamente
+TMDB_API_KEY = "34cfcdc95d19256cbdef1189f11f556"
 
 # --- BUSCA DE CAPAS (LIVROS) ---
 @st.cache_data(ttl=86400)
