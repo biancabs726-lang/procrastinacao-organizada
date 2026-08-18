@@ -2,10 +2,17 @@ import streamlit as st
 import pandas as pd
 import requests
 
-# ID de Publicação da Planilha
-PUB_ID = "2PACX-1vRHCcyhfmA0iw5CKm-jcTqb1_VYoCdHpxWWkjTQJqJK7beldA0KRgLKveiEqxV0xJs_VfXh_pTI33rF"
+# ID da Planilha
+DOC_ID = "1Dq9BXjt9tbsdFQryC3NBYJTXvhHjZbtEGdG_ZXpWdp0"
 
-# --- CONFIGURAÇÃO DA PÁGINA ---
+# Mapeamento dos GIDs de cada aba
+# Subtitua os dois primeiros caso sejam diferentes no seu navegador
+GIDS = {
+    "LIVROS": "0",                    # Verifique o #gid= ao clicar na aba LIVROS
+    "SÉRIES": "COLE_AQUI_O_GID_SERIES", # Verifique o #gid= ao clicar na aba SÉRIES
+    "UNIVERSO MARVEL": "1591861167"     # Mapeado da URL enviada
+}
+
 st.set_page_config(
     page_title="Procrastinação Organizada",
     page_icon="🍿",
@@ -22,7 +29,6 @@ st.markdown("""
 
 TMDB_API_KEY = st.secrets.get("TMDB_API_KEY", "")
 
-# --- APIs DE CAPA (com tratamento estrito para strings) ---
 @st.cache_data(ttl=86400)
 def get_book_cover(title, author=""):
     title_str = str(title) if pd.notna(title) else ""
@@ -61,12 +67,11 @@ def get_tmdb_poster(title, media_type="movie"):
         pass
     return f"https://placehold.co/300x450/1c252f/FFF?text={title_str.replace(' ', '+')}"
 
-# --- CARREGAMENTO DIRETO VIA CSV PÚBLICO ---
 @st.cache_data(ttl=300)
 def load_data(sheet_name):
     try:
-        sheet_encoded = requests.utils.quote(sheet_name)
-        url = f"https://docs.google.com/spreadsheets/d/e/{PUB_ID}/pub?single=true&output=csv&sheet={sheet_encoded}"
+        gid = GIDS.get(sheet_name, "0")
+        url = f"https://docs.google.com/spreadsheets/d/{DOC_ID}/export?format=csv&gid={gid}"
         data = pd.read_csv(url, header=None)
         
         if sheet_name == "LIVROS":
@@ -101,7 +106,6 @@ st.caption("Seu Hub Pessoal de Entretenimento")
 
 aba_livros, aba_series, aba_marvel = st.tabs(["📚 Biblioteca Virtual", "📺 Tracker de Séries", "🦸 Universo Marvel"])
 
-# --- 1. ABA LIVROS ---
 with aba_livros:
     df_l = load_data("LIVROS")
     if not df_l.empty:
@@ -130,7 +134,6 @@ with aba_livros:
                 st.write(f"Status: **{row['Status']}**")
                 st.markdown("---")
 
-# --- 2. ABA SÉRIES ---
 with aba_series:
     df_s = load_data("SÉRIES")
     if not df_s.empty:
@@ -153,7 +156,6 @@ with aba_series:
                 st.write(f"Status: **{row['Status']}**")
                 st.markdown("---")
 
-# --- 3. ABA MARVEL ---
 with aba_marvel:
     df_m = load_data("UNIVERSO MARVEL")
     if not df_m.empty:
