@@ -14,41 +14,37 @@ GIDS = {
 
 TMDB_API_KEY = "34cfcdc95d19256cbdef1189f11f556"
 
-# --- CONFIGURAÇÃO DA PÁGINA ---
+# Imagens de reserva reais (Unsplash) para nunca ficar em branco
+FALLBACK_BOOK = "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&q=80"
+FALLBACK_MOVIE = "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=400&q=80"
+
 st.set_page_config(
     page_title="Procrastinação Organizada",
     page_icon="🍿",
     layout="wide"
 )
 
-# Estilização CSS uniforme
 st.markdown("""
 <style>
     .stApp { background-color: #14181c; color: #9ab; }
     h1, h2, h3, h4 { color: #ffffff !important; }
     .stProgress > div > div > div > div { background-color: #00e054; }
-    div[data-testid="stImage"] img {
-        border-radius: 8px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-        object-fit: cover;
-        aspect-ratio: 2/3;
-        width: 100%;
+    img {
+        border-radius: 8px !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# --- FUNÇÕES DE IMAGEM ---
+# --- FUNÇÕES DE BUSCA DE IMAGEM ---
 @st.cache_data(ttl=86400)
 def get_book_cover(title, author=""):
     title_str = str(title).strip() if pd.notna(title) else ""
-    author_str = str(author).strip() if pd.notna(author) else ""
     if not title_str:
-        return "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=500&auto=format&fit=crop&q=60"
-    
+        return FALLBACK_BOOK
     try:
-        query = f"{title_str} {author_str}".strip()
-        encoded = urllib.parse.quote(query)
-        url = f"https://www.googleapis.com/books/v1/volumes?q={encoded}&maxResults=1"
+        query = f"{title_str} {author}".strip()
+        url = f"https://www.googleapis.com/books/v1/volumes?q={urllib.parse.quote(query)}&maxResults=1"
         res = requests.get(url, timeout=3).json()
         if "items" in res and len(res["items"]) > 0:
             links = res["items"][0].get("volumeInfo", {}).get("imageLinks", {})
@@ -57,20 +53,16 @@ def get_book_cover(title, author=""):
                 return cover.replace("http://", "https://")
     except Exception:
         pass
-    
-    encoded_text = urllib.parse.quote(title_str)
-    return f"https://dummyimage.com/300x450/1c252f/ffffff.png&text={encoded_text}"
+    return FALLBACK_BOOK
 
 @st.cache_data(ttl=86400)
 def get_tmdb_poster(title, media_type="movie"):
     title_str = str(title).strip() if pd.notna(title) else ""
     if not title_str:
-        return "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=500&auto=format&fit=crop&q=60"
-    
+        return FALLBACK_MOVIE
     try:
         search_type = "tv" if str(media_type).lower() in ["série", "tv", "serie"] else "movie"
-        encoded = urllib.parse.quote(title_str)
-        url = f"https://api.themoviedb.org/3/search/{search_type}?api_key={TMDB_API_KEY}&query={encoded}&language=pt-BR"
+        url = f"https://api.themoviedb.org/3/search/{search_type}?api_key={TMDB_API_KEY}&query={urllib.parse.quote(title_str)}&language=pt-BR"
         res = requests.get(url, timeout=3).json()
         if "results" in res and len(res["results"]) > 0:
             poster_path = res["results"][0].get("poster_path")
@@ -78,9 +70,7 @@ def get_tmdb_poster(title, media_type="movie"):
                 return f"https://image.tmdb.org/t/p/w500{poster_path}"
     except Exception:
         pass
-            
-    encoded_text = urllib.parse.quote(title_str)
-    return f"https://dummyimage.com/300x450/1c252f/ffffff.png&text={encoded_text}"
+    return FALLBACK_MOVIE
 
 # --- CARREGAMENTO DE DADOS ---
 @st.cache_data(ttl=300)
@@ -122,7 +112,7 @@ st.caption("Seu Hub Pessoal de Entretenimento")
 
 aba_livros, aba_series, aba_marvel = st.tabs(["📚 Biblioteca Virtual", "📺 Tracker de Séries", "🦸 Universo Marvel"])
 
-# 1. LIVROS (Padronizado igual à Marvel)
+# 1. LIVROS
 with aba_livros:
     df_l = load_data("LIVROS")
     if not df_l.empty:
@@ -143,14 +133,14 @@ with aba_livros:
         for idx, (_, row) in enumerate(df_l.iterrows()):
             with cols_l[idx % 4]:
                 cover_url = get_book_cover(row["Título"], row["Autor"])
-                st.image(cover_url, use_container_width=True)
+                st.image(cover_url, use_column_width=True)
                 st.write(f"**#{idx+1} - {row['Título']}**")
                 st.caption(f"✍️ {row['Autor']} | 🏷️ {row['Gênero']}")
                 is_lido = (str(row["Status"]).upper().strip() == "LIDO")
                 st.checkbox("Lido", value=is_lido, key=f"livro_{idx}")
                 st.markdown("---")
 
-# 2. SÉRIES (Padronizado igual à Marvel)
+# 2. SÉRIES
 with aba_series:
     df_s = load_data("SÉRIES")
     if not df_s.empty:
@@ -168,14 +158,14 @@ with aba_series:
         for idx, (_, row) in enumerate(series_unicas.iterrows()):
             with cols_s[idx % 4]:
                 poster_url = get_tmdb_poster(row["Série"], media_type="tv")
-                st.image(poster_url, use_container_width=True)
+                st.image(poster_url, use_column_width=True)
                 st.write(f"**#{idx+1} - {row['Série']}**")
                 st.caption(f"📺 {row['Temporada']} | 🍿 {row['Streaming']}")
                 is_finalizada = (str(row["Status"]).upper().strip() == "FINALIZADA")
                 st.checkbox("Finalizada", value=is_finalizada, key=f"serie_{idx}")
                 st.markdown("---")
 
-# 3. UNIVERSO MARVEL (Padrão)
+# 3. UNIVERSO MARVEL
 with aba_marvel:
     df_m = load_data("UNIVERSO MARVEL")
     if not df_m.empty:
@@ -191,7 +181,7 @@ with aba_marvel:
         for idx, (_, row) in enumerate(df_m.iterrows()):
             with cols_m[idx % 4]:
                 poster_url = get_tmdb_poster(row["Título"], media_type=row["Tipo"])
-                st.image(poster_url, use_container_width=True)
+                st.image(poster_url, use_column_width=True)
                 st.write(f"**#{idx+1} - {row['Título']}**")
                 st.caption(f"🎬 {row['Tipo']} | 📅 {row['Ano']}")
                 is_checked = (str(row["Status"]).upper().strip() == "SIM")
