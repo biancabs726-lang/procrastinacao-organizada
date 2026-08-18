@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import requests
+import urllib.parse
 
 # ID da Planilha e Mapeamento dos GIDs
 DOC_ID = "1Dq9BXjt9tbsdFQryC3NBYJTXvhHjZbtEGdG_ZXpWdp0"
@@ -26,19 +27,24 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-TMDB_API_KEY = st.secrets.get("TMDB_API_KEY", "")
+# Tenta buscar a API Key dos secrets
+TMDB_API_KEY = st.secrets.get("TMDB_API_KEY", "").strip()
 
-# --- APIs DE CAPA ---
+# --- BUSCA DE CAPAS (LIVROS) ---
 @st.cache_data(ttl=86400)
 def get_book_cover(title, author=""):
-    title_str = str(title) if pd.notna(title) else ""
-    author_str = str(author) if pd.notna(author) else ""
-    if not title_str.strip():
-        return "https://placehold.co/300x450/1c252f/FFF?text=Sem+Titulo"
+    title_str = str(title).strip() if pd.notna(title) else ""
+    author_str = str(author).strip() if pd.notna(author) else ""
+    
+    if not title_str:
+        return "https://placehold.co/300x450/1c252f/ffffff?text=Sem+Titulo"
+    
     try:
         query = f"{title_str} {author_str}".strip()
-        url = f"https://www.googleapis.com/books/v1/volumes?q={query}&maxResults=1"
+        encoded_query = urllib.parse.quote(query)
+        url = f"https://www.googleapis.com/books/v1/volumes?q={encoded_query}&maxResults=1"
         res = requests.get(url, timeout=5).json()
+        
         if "items" in res and len(res["items"]) > 0:
             image_links = res["items"][0].get("volumeInfo", {}).get("imageLinks", {})
             cover = image_links.get("thumbnail") or image_links.get("smallThumbnail")
@@ -46,26 +52,34 @@ def get_book_cover(title, author=""):
                 return cover.replace("http://", "https://")
     except Exception:
         pass
-    return f"https://placehold.co/300x450/1c252f/FFF?text={title_str.replace(' ', '+')}"
+        
+    encoded_title = urllib.parse.quote(title_str[:20])
+    return f"https://placehold.co/300x450/1c252f/ffffff?text={encoded_title}"
 
+# --- BUSCA DE PÔSTERES (FILMES E SÉRIES - TMDB) ---
 @st.cache_data(ttl=86400)
 def get_tmdb_poster(title, media_type="movie"):
-    title_str = str(title) if pd.notna(title) else ""
-    if not title_str.strip():
-        return "https://placehold.co/300x450/1c252f/FFF?text=Sem+Titulo"
-    if not TMDB_API_KEY:
-        return f"https://placehold.co/300x450/1c252f/FFF?text={title_str.replace(' ', '+')}"
-    try:
-        search_type = "tv" if str(media_type).lower() in ["série", "tv"] else "movie"
-        url = f"https://api.themoviedb.org/3/search/{search_type}?api_key={TMDB_API_KEY}&query={title_str}&language=pt-BR"
-        res = requests.get(url, timeout=5).json()
-        if "results" in res and len(res["results"]) > 0:
-            poster_path = res["results"][0].get("poster_path")
-            if poster_path:
-                return f"https://image.tmdb.org/t/p/w500{poster_path}"
-    except Exception:
-        pass
-    return f"https://placehold.co/300x450/1c252f/FFF?text={title_str.replace(' ', '+')}"
+    title_str = str(title).strip() if pd.notna(title) else ""
+    
+    if not title_str:
+        return "https://placehold.co/300x450/1c252f/ffffff?text=Sem+Titulo"
+    
+    if TMDB_API_KEY:
+        try:
+            search_type = "tv" if str(media_type).lower() in ["série", "tv", "serie"] else "movie"
+            encoded_title = urllib.parse.quote(title_str)
+            url = f"https://api.themoviedb.org/3/search/{search_type}?api_key={TMDB_API_KEY}&query={encoded_title}&language=pt-BR"
+            
+            res = requests.get(url, timeout=5).json()
+            if "results" in res and len(res["results"]) > 0:
+                poster_path = res["results"][0].get("poster_path")
+                if poster_path:
+                    return f"https://image.tmdb.org/t/p/w500{poster_path}"
+        except Exception:
+            pass
+            
+    encoded_title = urllib.parse.quote(title_str[:20])
+    return f"https://placehold.co/300x450/1c252f/ffffff?text={encoded_title}"
 
 # --- CARREGAMENTO DE DADOS ---
 @st.cache_data(ttl=300)
