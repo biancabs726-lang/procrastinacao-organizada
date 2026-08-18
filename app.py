@@ -14,7 +14,6 @@ GIDS = {
 
 TMDB_API_KEY = "34cfcdc95d19256cbdef1189f11f556"
 
-# Cabeçalho para simular navegador e evitar bloqueios HTTP 403 das APIs
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 }
@@ -25,16 +24,12 @@ st.set_page_config(
     layout="wide"
 )
 
-# Estilização CSS limpa e sem overrides de cards
+# Estilização CSS limpa e sem estilizar a tag de imagem diretamente com height fixo para evitar bug
 st.markdown("""
 <style>
     .stApp { background-color: #14181c; color: #9ab; }
     h1, h2, h3, h4 { color: #ffffff !important; }
     .stProgress > div > div > div > div { background-color: #00e054; }
-    img {
-        border-radius: 8px !important;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.5) !important;
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -42,13 +37,13 @@ st.markdown("""
 @st.cache_data(ttl=86400)
 def get_book_cover(title, author=""):
     title_str = str(title).strip() if pd.notna(title) else ""
-    if not title_str:
-        return f"https://placehold.co/400x600/1e293b/ffffff.png?text=Sem+Titulo"
+    if not title_str or title_str.lower() == "nan":
+        return "https://picsum.photos/300/450?blur=2"
     
     try:
         query = f"{title_str} {author}".strip()
         url = f"https://www.googleapis.com/books/v1/volumes?q={urllib.parse.quote(query)}&maxResults=1"
-        res = requests.get(url, headers=HEADERS, timeout=4).json()
+        res = requests.get(url, headers=HEADERS, timeout=5).json()
         if "items" in res and len(res["items"]) > 0:
             links = res["items"][0].get("volumeInfo", {}).get("imageLinks", {})
             cover = links.get("thumbnail") or links.get("smallThumbnail")
@@ -57,18 +52,18 @@ def get_book_cover(title, author=""):
     except Exception:
         pass
         
-    return f"https://placehold.co/400x600/1e293b/ffffff.png?text={urllib.parse.quote(title_str[:20])}"
+    return "https://picsum.photos/300/450"
 
 @st.cache_data(ttl=86400)
 def get_tmdb_poster(title, media_type="movie"):
     title_str = str(title).strip() if pd.notna(title) else ""
-    if not title_str:
-        return f"https://placehold.co/400x600/1e293b/ffffff.png?text=Sem+Titulo"
+    if not title_str or title_str.lower() == "nan":
+        return "https://picsum.photos/300/450?blur=2"
     
     try:
         search_type = "tv" if str(media_type).lower() in ["série", "tv", "serie"] else "movie"
         url = f"https://api.themoviedb.org/3/search/{search_type}?api_key={TMDB_API_KEY}&query={urllib.parse.quote(title_str)}&language=pt-BR"
-        res = requests.get(url, headers=HEADERS, timeout=4).json()
+        res = requests.get(url, headers=HEADERS, timeout=5).json()
         if "results" in res and len(res["results"]) > 0:
             poster_path = res["results"][0].get("poster_path")
             if poster_path:
@@ -76,7 +71,7 @@ def get_tmdb_poster(title, media_type="movie"):
     except Exception:
         pass
         
-    return f"https://placehold.co/400x600/1e293b/ffffff.png?text={urllib.parse.quote(title_str[:20])}"
+    return "https://picsum.photos/300/450"
 
 # --- CARREGAMENTO DE DADOS ---
 @st.cache_data(ttl=300)
