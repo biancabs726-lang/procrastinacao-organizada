@@ -73,23 +73,24 @@ def load_data(sheet_name):
         worksheet = spreadsheet.worksheet(sheet_name)
         data = pd.DataFrame(worksheet.get_all_values())
         
-        if sheet_name == "📖 LIVROS":
+        # Mapeia com os nomes exatos das abas do seu print
+        if sheet_name == "LIVROS":
             df = data.iloc[3:, [1, 2, 3, 4]].dropna(how="all")
             df.columns = ["Título", "Autor", "Gênero", "Status"]
-            return df
+            return df[df["Título"].str.strip() != ""]
 
-        elif sheet_name == "📺 SÉRIES":
+        elif sheet_name == "SÉRIES":
             df = data.iloc[3:, [0, 1, 2, 3]].dropna(how="all")
             df.columns = ["Série", "Temporada", "Streaming", "Status"]
             df["Série"] = df["Série"].ffill()
-            return df
+            return df[df["Série"].str.strip() != ""]
 
-        elif sheet_name == "🎬 MARVEL":
+        elif sheet_name == "UNIVERSO MARVEL":
             df = data.iloc[2:, [0, 1, 2, 3]].dropna(how="all")
             df.columns = ["Título", "Tipo", "Ano", "Status"]
-            return df
+            return df[df["Título"].str.strip() != ""]
 
-    except Exception:
+    except Exception as e:
         return pd.DataFrame()
 
 # --- INTERFACE DO APLICATIVO ---
@@ -100,16 +101,16 @@ aba_livros, aba_series, aba_marvel = st.tabs(["📚 Biblioteca Virtual", "📺 T
 
 # --- 1. ABA LIVROS ---
 with aba_livros:
-    df_l = load_data("📖 LIVROS")
+    df_l = load_data("LIVROS")
     if not df_l.empty:
-        lidos = len(df_l[df_l["Status"] == "LIDO"])
+        lidos = len(df_l[df_l["Status"].str.upper() == "LIDO"])
         total = len(df_l)
         
         c1, c2, c3 = st.columns(3)
         c1.metric("Livros Lidos", lidos)
         c2.metric("Total na Lista", total)
-        c3.metric("Progresso Geral", f"{(lidos/total)*100:.1f}%")
-        st.progress(lidos / total)
+        c3.metric("Progresso Geral", f"{(lidos/total)*100:.1f}%" if total > 0 else "0%")
+        st.progress(lidos / total if total > 0 else 0)
         st.divider()
 
         generos = ["Todos"] + list(df_l["Gênero"].unique())
@@ -129,13 +130,13 @@ with aba_livros:
 
 # --- 2. ABA SÉRIES ---
 with aba_series:
-    df_s = load_data("📺 SÉRIES")
+    df_s = load_data("SÉRIES")
     if not df_s.empty:
-        fin = len(df_s[df_s["Status"] == "FINALIZADA"])
+        fin = len(df_s[df_s["Status"].str.upper() == "FINALIZADA"])
         tot = len(df_s)
         
-        st.subheader(f"Progresso de Séries: {fin}/{tot} Temporadas Finalizadas ({int(fin/tot*100)}%)")
-        st.progress(fin / tot)
+        st.subheader(f"Progresso de Séries: {fin}/{tot} Temporadas Finalizadas ({int(fin/tot*100) if tot > 0 else 0}%)")
+        st.progress(fin / tot if tot > 0 else 0)
         st.divider()
 
         series_unicas = df_s.drop_duplicates(subset=["Série"])
@@ -152,13 +153,13 @@ with aba_series:
 
 # --- 3. ABA MARVEL ---
 with aba_marvel:
-    df_m = load_data("🎬 MARVEL")
+    df_m = load_data("UNIVERSO MARVEL")
     if not df_m.empty:
-        ass = len(df_m[df_m["Status"] == "SIM"])
+        ass = len(df_m[df_m["Status"].str.upper() == "SIM"])
         tot_m = len(df_m)
         
-        st.subheader(f"Maratona MCU: {ass}/{tot_m} assistidos ({int(ass/tot_m*100)}%)")
-        st.progress(ass / tot_m)
+        st.subheader(f"Maratona MCU: {ass}/{tot_m} assistidos ({int(ass/tot_m*100) if tot_m > 0 else 0}%)")
+        st.progress(ass / tot_m if tot_m > 0 else 0)
         st.divider()
 
         cols_m = st.columns(4)
@@ -168,5 +169,5 @@ with aba_marvel:
                 st.image(poster_url, use_container_width=True)
                 st.write(f"**#{idx+1} - {row['Título']}**")
                 st.caption(f"🎬 {row['Tipo']} | 📅 {row['Ano']}")
-                st.checkbox("Assistido", value=(row["Status"] == "SIM"), key=f"mcu_{idx}")
+                st.checkbox("Assistido", value=(row["Status"].str.upper() == "SIM"), key=f"mcu_{idx}")
                 st.markdown("---")
