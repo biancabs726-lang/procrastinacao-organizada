@@ -39,22 +39,15 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- GERADOR DE PLACEHOLDER SEGURO EM SVG ---
-def get_svg_placeholder(title):
-    safe_title = str(title).strip()[:20] if pd.notna(title) else "Sem Titulo"
-    svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450">
-      <rect width="300" height="450" fill="#1e293b"/>
-      <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#94a3b8" font-family="sans-serif" font-size="18" font-weight="bold">{safe_title}</text>
-    </svg>"""
-    encoded = urllib.parse.quote(svg)
-    return f"data:image/svg+xml;utf8,{encoded}"
+# --- FALLBACK INFALÍVEL COM IMAGEM REAL ---
+FALLBACK_IMG = "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&q=80"
 
 # --- FUNÇÕES DE BUSCA DE IMAGEM ---
 @st.cache_data(ttl=86400)
 def get_book_cover(title, author=""):
     title_str = str(title).strip() if pd.notna(title) else ""
     if not title_str or title_str.lower() in ["nan", "none"]:
-        return get_svg_placeholder("Sem Título")
+        return FALLBACK_IMG
     
     try:
         query = f"{title_str} {author}".strip()
@@ -68,13 +61,13 @@ def get_book_cover(title, author=""):
     except Exception:
         pass
         
-    return get_svg_placeholder(title_str)
+    return FALLBACK_IMG
 
 @st.cache_data(ttl=86400)
 def get_tmdb_poster(title, media_type="movie"):
     title_str = str(title).strip() if pd.notna(title) else ""
     if not title_str or title_str.lower() in ["nan", "none"]:
-        return get_svg_placeholder("Sem Título")
+        return FALLBACK_IMG
     
     try:
         search_type = "tv" if str(media_type).lower() in ["série", "tv", "serie"] else "movie"
@@ -87,7 +80,7 @@ def get_tmdb_poster(title, media_type="movie"):
     except Exception:
         pass
         
-    return get_svg_placeholder(title_str)
+    return FALLBACK_IMG
 
 # --- CARREGAMENTO DE DADOS ---
 @st.cache_data(ttl=300)
@@ -129,7 +122,7 @@ st.caption("Seu Hub Pessoal de Entretenimento")
 
 aba_livros, aba_series, aba_marvel = st.tabs(["📚 Biblioteca Virtual", "📺 Tracker de Séries", "🦸 Universo Marvel"])
 
-# 1. LIVROS (Com Paginação para não travar o app)
+# 1. LIVROS
 with aba_livros:
     df_l = load_data("LIVROS")
     if not df_l.empty:
@@ -146,7 +139,6 @@ with aba_livros:
         if gen_selected != "Todos":
             df_l = df_l[df_l["Gênero"].astype(str) == gen_selected]
 
-        # Controle de Paginação
         itens_por_pagina = 24
         total_paginas = (len(df_l) - 1) // itens_por_pagina + 1 if len(df_l) > 0 else 1
         
