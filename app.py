@@ -2,17 +2,16 @@ import streamlit as st
 import pandas as pd
 import requests
 
-# ID da Planilha
+# ID da Planilha e Mapeamento dos GIDs
 DOC_ID = "1Dq9BXjt9tbsdFQryC3NBYJTXvhHjZbtEGdG_ZXpWdp0"
 
-# Mapeamento dos GIDs de cada aba
-# Subtitua os dois primeiros caso sejam diferentes no seu navegador
 GIDS = {
-    "LIVROS": "0",                    # Verifique o #gid= ao clicar na aba LIVROS
-    "SÉRIES": "COLE_AQUI_O_GID_SERIES", # Verifique o #gid= ao clicar na aba SÉRIES
-    "UNIVERSO MARVEL": "1591861167"     # Mapeado da URL enviada
+    "LIVROS": "1591861167",
+    "SÉRIES": "1513581778",
+    "UNIVERSO MARVEL": "1360927897"
 }
 
+# --- CONFIGURAÇÃO DA PÁGINA ---
 st.set_page_config(
     page_title="Procrastinação Organizada",
     page_icon="🍿",
@@ -29,6 +28,7 @@ st.markdown("""
 
 TMDB_API_KEY = st.secrets.get("TMDB_API_KEY", "")
 
+# --- APIs DE CAPA ---
 @st.cache_data(ttl=86400)
 def get_book_cover(title, author=""):
     title_str = str(title) if pd.notna(title) else ""
@@ -67,6 +67,7 @@ def get_tmdb_poster(title, media_type="movie"):
         pass
     return f"https://placehold.co/300x450/1c252f/FFF?text={title_str.replace(' ', '+')}"
 
+# --- CARREGAMENTO DE DADOS ---
 @st.cache_data(ttl=300)
 def load_data(sheet_name):
     try:
@@ -78,7 +79,7 @@ def load_data(sheet_name):
             df = data.iloc[3:, [1, 2, 3, 4]].copy()
             df.columns = ["Título", "Autor", "Gênero", "Status"]
             df = df[df["Título"].fillna("").astype(str).str.strip() != ""]
-            df = df[~df["Título"].astype(str).str.upper().isin(["TÍTULO", "TITULO"])]
+            df = df[~df["Título"].astype(str).str.upper().isin(["TITULO", "TÍTULO"])]
             return df
 
         elif sheet_name == "SÉRIES":
@@ -90,10 +91,10 @@ def load_data(sheet_name):
             return df
 
         elif sheet_name == "UNIVERSO MARVEL":
-            df = data.iloc[2:, [0, 1, 2, 3]].copy()
+            df = data.iloc[4:, [0, 1, 2, 3]].copy()
             df.columns = ["Título", "Tipo", "Ano", "Status"]
             df = df[df["Título"].fillna("").astype(str).str.strip() != ""]
-            df = df[~df["Título"].astype(str).str.upper().isin(["TÍTULO", "TITULO"])]
+            df = df[~df["Título"].astype(str).str.upper().isin(["TITULO", "TÍTULO"])]
             return df
 
     except Exception as e:
@@ -106,6 +107,7 @@ st.caption("Seu Hub Pessoal de Entretenimento")
 
 aba_livros, aba_series, aba_marvel = st.tabs(["📚 Biblioteca Virtual", "📺 Tracker de Séries", "🦸 Universo Marvel"])
 
+# 1. LIVROS
 with aba_livros:
     df_l = load_data("LIVROS")
     if not df_l.empty:
@@ -134,6 +136,7 @@ with aba_livros:
                 st.write(f"Status: **{row['Status']}**")
                 st.markdown("---")
 
+# 2. SÉRIES
 with aba_series:
     df_s = load_data("SÉRIES")
     if not df_s.empty:
@@ -156,6 +159,7 @@ with aba_series:
                 st.write(f"Status: **{row['Status']}**")
                 st.markdown("---")
 
+# 3. MARVEL
 with aba_marvel:
     df_m = load_data("UNIVERSO MARVEL")
     if not df_m.empty:
