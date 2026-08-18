@@ -12,7 +12,6 @@ GIDS = {
     "UNIVERSO MARVEL": "1360927897"
 }
 
-# Chave pública gratuita da OMDb (não bloqueia servidor de nuvem)
 OMDB_API_KEY = "trilogy"
 
 st.set_page_config(
@@ -41,28 +40,19 @@ def generate_card_url(title, bg_color="1e293b", text_color="ffffff"):
     encoded_text = urllib.parse.quote(clean_title)
     return f"https://dummyimage.com/400x600/{bg_color}/{text_color}.png&text={encoded_text}"
 
-# --- BUSCA DE LIVROS (OPEN LIBRARY + GOOGLE BOOKS) ---
+# --- BUSCA DE LIVROS (MULTIFONTES: GOOGLE BOOKS + OPEN LIBRARY) ---
 @st.cache_data(ttl=86400)
 def get_book_cover(title, author=""):
     title_str = str(title).strip() if pd.notna(title) else ""
     if not title_str or title_str.lower() in ["nan", "none"]:
         return generate_card_url("Livro")
     
-    # 1. Open Library (Funciona sem bloqueio)
-    try:
-        query = f"{title_str} {author}".strip()
-        url = f"https://openlibrary.org/search.json?q={urllib.parse.quote(query)}"
-        res = requests.get(url, timeout=3).json()
-        if "docs" in res and len(res["docs"]) > 0:
-            cover_i = res["docs"][0].get("cover_i")
-            if cover_i:
-                return f"https://covers.openlibrary.org/b/id/{cover_i}-L.jpg"
-    except Exception:
-        pass
+    query = f"{title_str} {author}".strip()
+    encoded = urllib.parse.quote(query)
 
-    # 2. Google Books (Backup)
+    # 1. Busca via Google Books (sem headers para não bloquear)
     try:
-        url_gb = f"https://www.googleapis.com/books/v1/volumes?q={urllib.parse.quote(query)}&maxResults=1"
+        url_gb = f"https://www.googleapis.com/books/v1/volumes?q={encoded}&maxResults=1"
         res_gb = requests.get(url_gb, timeout=3).json()
         if "items" in res_gb and len(res_gb["items"]) > 0:
             links = res_gb["items"][0].get("volumeInfo", {}).get("imageLinks", {})
@@ -71,35 +61,55 @@ def get_book_cover(title, author=""):
                 return cover.replace("http://", "https://")
     except Exception:
         pass
+
+    # 2. Open Library (Backup)
+    try:
+        url_ol = f"https://openlibrary.org/search.json?q={encoded}"
+        res_ol = requests.get(url_ol, timeout=3).json()
+        if "docs" in res_ol and len(res_ol["docs"]) > 0:
+            cover_i = res_ol["docs"][0].get("cover_i")
+            if cover_i:
+                return f"https://covers.openlibrary.org/b/id/{cover_i}-L.jpg"
+    except Exception:
+        pass
         
     return generate_card_url(title_str, bg_color="0f172a")
 
-# --- BUSCA DE FILMES E SÉRIES (OMDb API / IMDb) ---
+# --- BUSCA DE FILMES E SÉRIES COM MULTIBUSCA ---
 @st.cache_data(ttl=86400)
 def get_omdb_poster(title, media_type="movie"):
     title_str = str(title).strip() if pd.notna(title) else ""
     if not title_str or title_str.lower() in ["nan", "none"]:
         return generate_card_url("Mídia")
     
+    encoded = urllib.parse.quote(title_str)
+    type_clean = str(media_type).lower().strip()
+    type_param = "series" if any(x in type_clean for x in ["série", "serie", "tv"]) else "movie"
+
+    # 1. Busca Direta no OMDb com o título original em PT
     try:
-        type_clean = str(media_type).lower().strip()
-        type_param = "series" if any(x in type_clean for x in ["série", "serie", "tv"]) else "movie"
-        encoded = urllib.parse.quote(title_str)
-        
-        # Chamada OMDb
         url = f"http://www.omdbapi.com/?t={encoded}&type={type_param}&apikey={OMDB_API_KEY}"
         res = requests.get(url, timeout=3).json()
-        
         if res.get("Response") == "True" and res.get("Poster") and res["Poster"] != "N/A":
             return res["Poster"]
-            
-        # Busca secundária sem filtrar o tipo (caso seja marcante como Filme mas seja Série)
-        url_alt = f"http://www.omdbapi.com/?t={encoded}&apikey={OMDB_API_KEY}"
-        res_alt = requests.get(url_alt, timeout=3).json()
-        if res_alt.get("Response") == "True" and res_alt.get("Poster") and res_alt["Poster"] != "N/A":
-            return res_alt["Poster"]
     except Exception:
         pass
+
+    # 2. Busca Geral no OMDb por palavra-chave (Search s=)
+    try:
+        url_s = f"http://www.omdbapi.com/?s={encoded}&apikey={OMDB_API_KEY}"
+        res_s = requests.get(url_s, timeout=3).json()
+        if res_s.get("Response") == "True" and res_s.get("Search"):
+            first_match = res_s["Search"][0]
+            if first_match.get("Poster") and first_match["Poster"] != "N/A":
+                return first_match["Poster"]
+    except Exception:
+        pass
+
+    # 3. Fallback: Google Books (Pôsteres de filmes/séries famosos também estão no Google Books)
+    backup_cover = get_book_cover(title_str)
+    if "dummyimage.com" not in backup_cover:
+        return backup_cover
 
     return generate_card_url(title_str, bg_color="1e1b4b" if "série" in str(media_type).lower() else "450a0a")
 
