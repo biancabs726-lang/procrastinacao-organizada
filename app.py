@@ -59,9 +59,13 @@ def get_tmdb_poster(title, media_type="movie"):
 def load_data(sheet_name):
     try:
         scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
-        creds = Credentials.from_service_account_info(
-            st.secrets["gcp_service_account"], scopes=scope
-        )
+        
+        # Converte e corrige a chave privada para o formato correto com quebras de linha
+        creds_dict = dict(st.secrets["gcp_service_account"])
+        if "private_key" in creds_dict:
+            creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
+            
+        creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
         client = gspread.authorize(creds)
         spreadsheet = client.open("Procrastinação Organizada")
         worksheet = spreadsheet.worksheet(sheet_name)
