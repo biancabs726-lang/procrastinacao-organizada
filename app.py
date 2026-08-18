@@ -60,10 +60,12 @@ def load_data(sheet_name):
     try:
         scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
         
-        # Converte e corrige a chave privada para o formato correto com quebras de linha
+        # Converte as credenciais tratando de forma absoluta qualquer variação de quebra de linha
         creds_dict = dict(st.secrets["gcp_service_account"])
         if "private_key" in creds_dict:
-            creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
+            pk = str(creds_dict["private_key"])
+            pk = pk.replace("\\\\n", "\n").replace("\\n", "\n")
+            creds_dict["private_key"] = pk
             
         creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
         client = gspread.authorize(creds)
