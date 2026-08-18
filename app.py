@@ -12,13 +12,8 @@ GIDS = {
     "UNIVERSO MARVEL": "1360927897"
 }
 
-TMDB_BEARER_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIzNGNmY2RjOWVkMTkyNTZjYmRlZjExODlmMTFmNTU2Iiwic3ViIjI2MTA3NzA0MzMxMy45OTQ0OTQsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.QdiVx3r8QOy6ZdllcYKSbb6T1Bo7OFfRigcqws2QJ9Q"
-
-HEADERS = {
-    "Authorization": f"Bearer {TMDB_BEARER_TOKEN}",
-    "Accept": "application/json",
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-}
+# Chave pública gratuita da OMDb (não bloqueia servidor de nuvem)
+OMDB_API_KEY = "trilogy"
 
 st.set_page_config(
     page_title="Procrastinação Organizada",
@@ -46,13 +41,14 @@ def generate_card_url(title, bg_color="1e293b", text_color="ffffff"):
     encoded_text = urllib.parse.quote(clean_title)
     return f"https://dummyimage.com/400x600/{bg_color}/{text_color}.png&text={encoded_text}"
 
-# --- BUSCA GOOGLE BOOKS COM CONEXÃO DIRETA SEM BLOQUEIO ---
+# --- BUSCA DE LIVROS (OPEN LIBRARY + GOOGLE BOOKS) ---
 @st.cache_data(ttl=86400)
 def get_book_cover(title, author=""):
     title_str = str(title).strip() if pd.notna(title) else ""
     if not title_str or title_str.lower() in ["nan", "none"]:
         return generate_card_url("Livro")
     
+    # 1. Open Library (Funciona sem bloqueio)
     try:
         query = f"{title_str} {author}".strip()
         url = f"https://openlibrary.org/search.json?q={urllib.parse.quote(query)}"
@@ -64,6 +60,7 @@ def get_book_cover(title, author=""):
     except Exception:
         pass
 
+    # 2. Google Books (Backup)
     try:
         url_gb = f"https://www.googleapis.com/books/v1/volumes?q={urllib.parse.quote(query)}&maxResults=1"
         res_gb = requests.get(url_gb, timeout=3).json()
@@ -77,25 +74,30 @@ def get_book_cover(title, author=""):
         
     return generate_card_url(title_str, bg_color="0f172a")
 
-# --- BUSCA TMDB COM ALTERNATIVA OPEN MEDIA DB ---
+# --- BUSCA DE FILMES E SÉRIES (OMDb API / IMDb) ---
 @st.cache_data(ttl=86400)
-def get_tmdb_poster(title, media_type="movie"):
+def get_omdb_poster(title, media_type="movie"):
     title_str = str(title).strip() if pd.notna(title) else ""
     if not title_str or title_str.lower() in ["nan", "none"]:
         return generate_card_url("Mídia")
     
     try:
         type_clean = str(media_type).lower().strip()
-        search_type = "tv" if any(x in type_clean for x in ["série", "serie", "tv"]) else "movie"
+        type_param = "series" if any(x in type_clean for x in ["série", "serie", "tv"]) else "movie"
         encoded = urllib.parse.quote(title_str)
         
-        url = f"https://api.themoviedb.org/3/search/{search_type}?query={encoded}&language=pt-BR"
-        res = requests.get(url, headers=HEADERS, timeout=3).json()
+        # Chamada OMDb
+        url = f"http://www.omdbapi.com/?t={encoded}&type={type_param}&apikey={OMDB_API_KEY}"
+        res = requests.get(url, timeout=3).json()
         
-        if "results" in res and len(res["results"]) > 0:
-            poster_path = res["results"][0].get("poster_path")
-            if poster_path:
-                return f"https://image.tmdb.org/t/p/w500{poster_path}"
+        if res.get("Response") == "True" and res.get("Poster") and res["Poster"] != "N/A":
+            return res["Poster"]
+            
+        # Busca secundária sem filtrar o tipo (caso seja marcante como Filme mas seja Série)
+        url_alt = f"http://www.omdbapi.com/?t={encoded}&apikey={OMDB_API_KEY}"
+        res_alt = requests.get(url_alt, timeout=3).json()
+        if res_alt.get("Response") == "True" and res_alt.get("Poster") and res_alt["Poster"] != "N/A":
+            return res_alt["Poster"]
     except Exception:
         pass
 
@@ -198,7 +200,7 @@ with aba_series:
         cols_s = st.columns(4)
         for idx, (_, row) in enumerate(series_unicas.iterrows()):
             with cols_s[idx % 4]:
-                poster_url = get_tmdb_poster(row["Série"], media_type="tv")
+                poster_url = get_omdb_poster(row["Série"], media_type="series")
                 st.image(poster_url, use_container_width=True)
                 st.write(f"**#{idx+1} - {row['Série']}**")
                 st.caption(f"📺 {row['Temporada']} | 🍿 {row['Streaming']}")
@@ -221,7 +223,7 @@ with aba_marvel:
         cols_m = st.columns(4)
         for idx, (_, row) in enumerate(df_m.iterrows()):
             with cols_m[idx % 4]:
-                poster_url = get_tmdb_poster(row["Título"], media_type=row["Tipo"])
+                poster_url = get_omdb_poster(row["Título"], media_type=row["Tipo"])
                 st.image(poster_url, use_container_width=True)
                 st.write(f"**#{idx+1} - {row['Título']}**")
                 st.caption(f"🎬 {row['Tipo']} | 📅 {row['Ano']}")
