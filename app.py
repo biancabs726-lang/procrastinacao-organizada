@@ -20,14 +20,11 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Chave do TMDB (Opcional, salva nos Secrets)
 TMDB_API_KEY = st.secrets.get("TMDB_API_KEY", "")
 
-# --- FUNÇÕES DAS APIs DE CAPAS ---
-
+# --- APIs DE CAPA ---
 @st.cache_data(ttl=86400)
 def get_book_cover(title, author=""):
-    """Busca capa de livro na Google Books API (100% Gratuita)"""
     try:
         query = f"{title} {author}".strip()
         url = f"https://www.googleapis.com/books/v1/volumes?q={query}&maxResults=1"
@@ -43,12 +40,10 @@ def get_book_cover(title, author=""):
 
 @st.cache_data(ttl=86400)
 def get_tmdb_poster(title, media_type="movie"):
-    """Busca poster de filme ou série no TMDB"""
     if not TMDB_API_KEY:
         return f"https://placehold.co/300x450/1c252f/FFF?text={title.replace(' ', '+')}"
-    
     try:
-        search_type = "tv" if media_type.lower() in ["série", "tv"] else "movie"
+        search_type = "tv" if str(media_type).lower() in ["série", "tv"] else "movie"
         url = f"https://api.themoviedb.org/3/search/{search_type}?api_key={TMDB_API_KEY}&query={title}&language=pt-BR"
         res = requests.get(url, timeout=5).json()
         if "results" in res and len(res["results"]) > 0:
@@ -59,8 +54,7 @@ def get_tmdb_poster(title, media_type="movie"):
         pass
     return f"https://placehold.co/300x450/1c252f/FFF?text={title.replace(' ', '+')}"
 
-# --- CARREGAMENTO DO GOOGLE SHEETS ---
-
+# --- CARREGAMENTO DO SHEETS ---
 @st.cache_data(ttl=300)
 def load_data(sheet_name):
     try:
@@ -73,27 +67,30 @@ def load_data(sheet_name):
         worksheet = spreadsheet.worksheet(sheet_name)
         data = pd.DataFrame(worksheet.get_all_values())
         
-        # Mapeia com os nomes exatos das abas do seu print
         if sheet_name == "LIVROS":
-            df = data.iloc[3:, [1, 2, 3, 4]].dropna(how="all")
+            df = data.iloc[3:, [1, 2, 3, 4]].copy()
             df.columns = ["Título", "Autor", "Gênero", "Status"]
-            return df[df["Título"].str.strip() != ""]
+            df = df[df["Título"].astype(str).str.strip() != ""]
+            return df
 
         elif sheet_name == "SÉRIES":
-            df = data.iloc[3:, [0, 1, 2, 3]].dropna(how="all")
+            df = data.iloc[3:, [0, 1, 2, 3]].copy()
             df.columns = ["Série", "Temporada", "Streaming", "Status"]
-            df["Série"] = df["Série"].ffill()
-            return df[df["Série"].str.strip() != ""]
+            df["Série"] = df["Série"].replace("", None).ffill()
+            df = df[df["Série"].astype(str).str.strip() != ""]
+            return df
 
         elif sheet_name == "UNIVERSO MARVEL":
-            df = data.iloc[2:, [0, 1, 2, 3]].dropna(how="all")
+            df = data.iloc[2:, [0, 1, 2, 3]].copy()
             df.columns = ["Título", "Tipo", "Ano", "Status"]
-            return df[df["Título"].str.strip() != ""]
+            df = df[df["Título"].astype(str).str.strip() != ""]
+            return df
 
     except Exception as e:
+        st.error(f"Erro ao carregar aba {sheet_name}: {e}")
         return pd.DataFrame()
 
-# --- INTERFACE DO APLICATIVO ---
+# --- INTERFACE ---
 st.title("🍿 Procrastinação Organizada")
 st.caption("Seu Hub Pessoal de Entretenimento")
 
@@ -103,7 +100,7 @@ aba_livros, aba_series, aba_marvel = st.tabs(["📚 Biblioteca Virtual", "📺 T
 with aba_livros:
     df_l = load_data("LIVROS")
     if not df_l.empty:
-        lidos = len(df_l[df_l["Status"].str.upper() == "LIDO"])
+        lidos = len(df_l[df_l["Status"].astype(str).str.upper().str.strip() == "LIDO"])
         total = len(df_l)
         
         c1, c2, c3 = st.columns(3)
@@ -113,13 +110,13 @@ with aba_livros:
         st.progress(lidos / total if total > 0 else 0)
         st.divider()
 
-        generos = ["Todos"] + list(df_l["Gênero"].unique())
+        generos = ["Todos"] + [g for g in df_l["Gênero"].unique() if g]
         gen_selected = st.selectbox("Filtrar por Gênero:", generos)
         if gen_selected != "Todos":
             df_l = df_l[df_l["Gênero"] == gen_selected]
 
         cols = st.columns(4)
-        for idx, (_, row) in enumerate(df_l.head(20).iterrows()):
+        for idx, (_, row) in enumerate(df_l.head(24).iterrows()):
             with cols[idx % 4]:
                 cover_url = get_book_cover(row["Título"], row["Autor"])
                 st.image(cover_url, use_container_width=True)
@@ -127,12 +124,14 @@ with aba_livros:
                 st.caption(f"✍️ {row['Autor']} | {row['Gênero']}")
                 st.write(f"Status: **{row['Status']}**")
                 st.markdown("---")
+    else:
+        st.info("Aguardando dados da aba LIVROS...")
 
 # --- 2. ABA SÉRIES ---
 with aba_series:
     df_s = load_data("SÉRIES")
     if not df_s.empty:
-        fin = len(df_s[df_s["Status"].str.upper() == "FINALIZADA"])
+        fin = len(df_s[df_s["Status"].astype(str).str.upper().str.strip() == "FINALIZADA"])
         tot = len(df_s)
         
         st.subheader(f"Progresso de Séries: {fin}/{tot} Temporadas Finalizadas ({int(fin/tot*100) if tot > 0 else 0}%)")
@@ -150,12 +149,14 @@ with aba_series:
                 st.caption(f"📺 {row['Temporada']} ({row['Streaming']})")
                 st.write(f"Status: **{row['Status']}**")
                 st.markdown("---")
+    else:
+        st.info("Aguardando dados da aba SÉRIES...")
 
 # --- 3. ABA MARVEL ---
 with aba_marvel:
     df_m = load_data("UNIVERSO MARVEL")
     if not df_m.empty:
-        ass = len(df_m[df_m["Status"].str.upper() == "SIM"])
+        ass = len(df_m[df_m["Status"].astype(str).str.upper().str.strip() == "SIM"])
         tot_m = len(df_m)
         
         st.subheader(f"Maratona MCU: {ass}/{tot_m} assistidos ({int(ass/tot_m*100) if tot_m > 0 else 0}%)")
@@ -169,5 +170,8 @@ with aba_marvel:
                 st.image(poster_url, use_container_width=True)
                 st.write(f"**#{idx+1} - {row['Título']}**")
                 st.caption(f"🎬 {row['Tipo']} | 📅 {row['Ano']}")
-                st.checkbox("Assistido", value=(row["Status"].str.upper() == "SIM"), key=f"mcu_{idx}")
+                is_checked = (str(row["Status"]).upper().strip() == "SIM")
+                st.checkbox("Assistido", value=is_checked, key=f"mcu_{idx}")
                 st.markdown("---")
+    else:
+        st.info("Aguardando dados da aba UNIVERSO MARVEL...")
