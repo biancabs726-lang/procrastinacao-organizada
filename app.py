@@ -2,8 +2,6 @@ import streamlit as st
 import pandas as pd
 import requests
 import urllib.parse
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 
 # ID da Planilha e GIDs
 DOC_ID = "1Dq9BXjt9tbsdFQryC3NBYJTXvhHjZbtEGdG_ZXpWdp0"
@@ -16,14 +14,9 @@ GIDS = {
 
 TMDB_API_KEY = "34cfcdc95d19256cbdef1189f11f556"
 
-# Configuração de Sessão para Evitar Bloqueio de IP no Streamlit Cloud
-session = requests.Session()
-retries = Retry(total=3, backoff_factor=1, status_forcelist=[429, 500, 502, 503, 504])
-session.mount('https://', HTTPAdapter(max_retries=retries))
-session.headers.update({
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-    "Accept": "application/json"
-})
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+}
 
 st.set_page_config(
     page_title="Procrastinação Organizada",
@@ -46,57 +39,55 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- FUNÇÃO DE BUSCA TMDB COM ENCODING E SESSION ---
-@st.cache_data(ttl=86400)
-def get_tmdb_poster(title, media_type="movie"):
-    title_str = str(title).strip() if pd.notna(title) else ""
-    if not title_str or title_str.lower() in ["nan", "none", ""]:
-        return "https://via.placeholder.com/300x450/1c252f/ffffff?text=Sem+Titulo"
-    
-    try:
-        search_type = "tv" if str(media_type).lower() in ["série", "tv", "serie"] else "movie"
-        encoded_title = urllib.parse.quote(title_str)
-        url = f"https://api.themoviedb.org/3/search/{search_type}?api_key={TMDB_API_KEY}&query={encoded_title}&language=pt-BR&include_adult=false"
-        
-        response = session.get(url, timeout=5)
-        if response.status_code == 200:
-            data = response.json()
-            if data.get("results") and len(data["results"]) > 0:
-                poster_path = data["results"][0].get("poster_path")
-                if poster_path:
-                    return f"https://image.tmdb.org/t/p/w500{poster_path}"
-    except Exception:
-        pass
-        
-    encoded_text = urllib.parse.quote(title_str[:20])
-    return f"https://via.placeholder.com/300x450/1c252f/ffffff?text={encoded_text}"
+# --- GERADOR DE PLACEHOLDER SEGURO EM SVG ---
+def get_svg_placeholder(title):
+    safe_title = str(title).strip()[:20] if pd.notna(title) else "Sem Titulo"
+    svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="300" height="450" viewBox="0 0 300 450">
+      <rect width="300" height="450" fill="#1e293b"/>
+      <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#94a3b8" font-family="sans-serif" font-size="18" font-weight="bold">{safe_title}</text>
+    </svg>"""
+    encoded = urllib.parse.quote(svg)
+    return f"data:image/svg+xml;utf8,{encoded}"
 
-# --- FUNÇÃO DE BUSCA GOOGLE BOOKS ---
+# --- FUNÇÕES DE BUSCA DE IMAGEM ---
 @st.cache_data(ttl=86400)
 def get_book_cover(title, author=""):
     title_str = str(title).strip() if pd.notna(title) else ""
-    author_str = str(author).strip() if pd.notna(author) else ""
-    if not title_str or title_str.lower() in ["nan", "none", ""]:
-        return "https://via.placeholder.com/300x450/1c252f/ffffff?text=Sem+Titulo"
+    if not title_str or title_str.lower() in ["nan", "none"]:
+        return get_svg_placeholder("Sem Título")
     
     try:
-        query = f"{title_str} {author_str}".strip()
-        encoded_query = urllib.parse.quote(query)
-        url = f"https://www.googleapis.com/books/v1/volumes?q={encoded_query}&maxResults=1"
-        
-        response = session.get(url, timeout=5)
-        if response.status_code == 200:
-            data = response.json()
-            if "items" in data and len(data["items"]) > 0:
-                links = data["items"][0].get("volumeInfo", {}).get("imageLinks", {})
-                cover = links.get("thumbnail") or links.get("smallThumbnail")
-                if cover:
-                    return cover.replace("http://", "https://")
+        query = f"{title_str} {author}".strip()
+        url = f"https://www.googleapis.com/books/v1/volumes?q={urllib.parse.quote(query)}&maxResults=1"
+        res = requests.get(url, headers=HEADERS, timeout=3).json()
+        if "items" in res and len(res["items"]) > 0:
+            links = res["items"][0].get("volumeInfo", {}).get("imageLinks", {})
+            cover = links.get("thumbnail") or links.get("smallThumbnail")
+            if cover:
+                return cover.replace("http://", "https://")
     except Exception:
         pass
         
-    encoded_text = urllib.parse.quote(title_str[:20])
-    return f"https://via.placeholder.com/300x450/1c252f/ffffff?text={encoded_text}"
+    return get_svg_placeholder(title_str)
+
+@st.cache_data(ttl=86400)
+def get_tmdb_poster(title, media_type="movie"):
+    title_str = str(title).strip() if pd.notna(title) else ""
+    if not title_str or title_str.lower() in ["nan", "none"]:
+        return get_svg_placeholder("Sem Título")
+    
+    try:
+        search_type = "tv" if str(media_type).lower() in ["série", "tv", "serie"] else "movie"
+        url = f"https://api.themoviedb.org/3/search/{search_type}?api_key={TMDB_API_KEY}&query={urllib.parse.quote(title_str)}&language=pt-BR"
+        res = requests.get(url, headers=HEADERS, timeout=3).json()
+        if "results" in res and len(res["results"]) > 0:
+            poster_path = res["results"][0].get("poster_path")
+            if poster_path:
+                return f"https://image.tmdb.org/t/p/w500{poster_path}"
+    except Exception:
+        pass
+        
+    return get_svg_placeholder(title_str)
 
 # --- CARREGAMENTO DE DADOS ---
 @st.cache_data(ttl=300)
@@ -138,7 +129,7 @@ st.caption("Seu Hub Pessoal de Entretenimento")
 
 aba_livros, aba_series, aba_marvel = st.tabs(["📚 Biblioteca Virtual", "📺 Tracker de Séries", "🦸 Universo Marvel"])
 
-# 1. LIVROS
+# 1. LIVROS (Com Paginação para não travar o app)
 with aba_livros:
     df_l = load_data("LIVROS")
     if not df_l.empty:
@@ -155,15 +146,28 @@ with aba_livros:
         if gen_selected != "Todos":
             df_l = df_l[df_l["Gênero"].astype(str) == gen_selected]
 
+        # Controle de Paginação
+        itens_por_pagina = 24
+        total_paginas = (len(df_l) - 1) // itens_por_pagina + 1 if len(df_l) > 0 else 1
+        
+        col_p1, col_p2, col_p3 = st.columns([1, 2, 1])
+        with col_p2:
+            pagina = st.number_input("Página", min_value=1, max_value=total_paginas, value=1, step=1)
+            st.caption(f"Mostrando página {pagina} de {total_paginas} (Total de {len(df_l)} livros)")
+
+        inicio = (pagina - 1) * itens_por_pagina
+        fim = inicio + itens_por_pagina
+        df_pagina = df_l.iloc[inicio:fim]
+
         cols_l = st.columns(4)
-        for idx, (_, row) in enumerate(df_l.iterrows()):
+        for idx, (_, row) in enumerate(df_pagina.iterrows()):
             with cols_l[idx % 4]:
                 cover_url = get_book_cover(row["Título"], row["Autor"])
                 st.image(cover_url, use_container_width=True)
-                st.write(f"**#{idx+1} - {row['Título']}**")
+                st.write(f"**#{inicio + idx + 1} - {row['Título']}**")
                 st.caption(f"✍️ {row['Autor']} | 🏷️ {row['Gênero']}")
                 is_lido = (str(row["Status"]).upper().strip() == "LIDO")
-                st.checkbox("Lido", value=is_lido, key=f"livro_{idx}")
+                st.checkbox("Lido", value=is_lido, key=f"livro_{inicio + idx}")
                 st.markdown("---")
 
 # 2. SÉRIES
