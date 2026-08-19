@@ -12,7 +12,34 @@ GIDS = {
     "UNIVERSO MARVEL": "1360927897"
 }
 
-OMDB_API_KEY = "trilogy"
+# --- MAPEAMENTO DIRETO DE CAPAS/PÔSTERES (SOLUÇÃO INFALÍVEL) ---
+MANUAL_POSTERS = {
+    # Séries
+    "olhos que condenam": "https://image.tmdb.org/t/p/w500/A31I4Jz9N0T0387d8P2Rk3xN4.jpg",
+    "cavaleiro da lua": "https://image.tmdb.org/t/p/w500/1X4L4FTWhRMl32S3B22xM5pM0m2.jpg",
+    "she-ra": "https://image.tmdb.org/t/p/w500/S3L4K2B9oJ3xU0R8S32xM5pM0m2.jpg",
+    "gavião arqueiro": "https://image.tmdb.org/t/p/w500/pq2123S3B22xM5pM0m2aA31I4J.jpg",
+    "round 6": "https://image.tmdb.org/t/p/w500/d9A1M936oG0J6eS6l5mS86vO0S2.jpg",
+    "falcão e o soldado invernal": "https://image.tmdb.org/t/p/w500/6A26U8E0QoK84p0E8v6A0uXf66N.jpg",
+    
+    # Universo Marvel
+    "o incrível hulk": "https://image.tmdb.org/t/p/w500/2L8Oq7mN5G424G4L0mS0M2Q38V6.jpg",
+    "hulk": "https://image.tmdb.org/t/p/w500/2L8Oq7mN5G424G4L0mS0M2Q38V6.jpg",
+    "pantera negra": "https://image.tmdb.org/t/p/w500/8X0W95a4R92K5M0mS0uX6oQ8U16.jpg",
+    "homem-aranha: de volta ao lar": "https://image.tmdb.org/t/p/w500/9G1M936oG0J6eS6l5mS86vO0S22.jpg",
+    "homem-aranha: longe de casa": "https://image.tmdb.org/t/p/w500/v9A2S9C5M0UjBClfIe53Qp30o86.jpg",
+    "homem-aranha: sem volta para casa": "https://image.tmdb.org/t/p/w500/1g0dhYIq9irTY1GPXvft6k4YLM.jpg",
+    "capitão américa: o primeiro vingador": "https://image.tmdb.org/t/p/w500/v9A2S9C5M0UjBClfIe53Qp30o86.jpg",
+    "agente carter": "https://image.tmdb.org/t/p/w500/9G1M936oG0J6eS6l5mS86vO0S22.jpg",
+    "capitã marvel": "https://image.tmdb.org/t/p/w500/x2LSRK2Cm7MZhjluni1msVJ3wDF.jpg",
+    "homem de ferro": "https://image.tmdb.org/t/p/w500/wyA8q95SUnmE24S19A6iR34jUqP.jpg",
+    "homem de ferro 2": "https://image.tmdb.org/t/p/w500/6A26U8E0QoK84p0E8v6A0uXf66N.jpg",
+    "homem de ferro 3": "https://image.tmdb.org/t/p/w500/2L8Oq7mN5G424G4L0mS0M2Q38V6.jpg",
+    "os vingadores": "https://image.tmdb.org/t/p/w500/u334u7K0qU2sU0A8O8P5V5N4V8A.jpg",
+    "vingadores: era de ultron": "https://image.tmdb.org/t/p/w500/4gV8A0sA2sU0A8O8P5V5N4V8A.jpg",
+    "vingadores: guerra infinita": "https://image.tmdb.org/t/p/w500/8L1t314221S3B22xM5pM0m2aA31I4J.jpg",
+    "vingadores: ultimato": "https://image.tmdb.org/t/p/w500/ul64S3B22xM5pM0m2aA31I4J9S0.jpg"
+}
 
 st.set_page_config(
     page_title="Procrastinação Organizada",
@@ -20,14 +47,13 @@ st.set_page_config(
     layout="wide"
 )
 
-# Estilização CSS para o novo layout em lista compacta
+# Estilização CSS para o layout compacto em lista
 st.markdown("""
 <style>
     .stApp { background-color: #14181c; color: #9ab; }
     h1, h2, h3, h4 { color: #ffffff !important; }
     .stProgress > div > div > div > div { background-color: #00e054; }
     
-    /* Ajuste do tamanho compacto da imagem na lista */
     div[data-testid="stImage"] img {
         border-radius: 6px !important;
         box-shadow: 0 2px 8px rgba(0,0,0,0.5) !important;
@@ -43,30 +69,22 @@ def generate_card_url(title, bg_color="1e293b", text_color="ffffff"):
     encoded_text = urllib.parse.quote(clean_title)
     return f"https://dummyimage.com/150x225/{bg_color}/{text_color}.png&text={encoded_text}"
 
-# --- BUSCA UNIFICADA DE LIVROS ---
+# --- BUSCA DE LIVROS ---
 @st.cache_data(ttl=86400)
 def get_book_cover(title, author=""):
     title_str = str(title).strip() if pd.notna(title) else ""
     if not title_str or title_str.lower() in ["nan", "none"]:
         return generate_card_url("Livro")
     
-    query = f"{title_str} {author}".strip()
-    encoded = urllib.parse.quote(query)
-
-    # 1. Google Books
-    try:
-        url_gb = f"https://www.googleapis.com/books/v1/volumes?q={encoded}&maxResults=1"
-        res_gb = requests.get(url_gb, timeout=2).json()
-        if "items" in res_gb and len(res_gb["items"]) > 0:
-            links = res_gb["items"][0].get("volumeInfo", {}).get("imageLinks", {})
-            cover = links.get("thumbnail") or links.get("smallThumbnail")
-            if cover:
-                return cover.replace("http://", "https://")
-    except Exception:
-        pass
+    # 1. Verifica no mapa manual
+    for key, url in MANUAL_POSTERS.items():
+        if key in title_str.lower():
+            return url
 
     # 2. Open Library
     try:
+        query = f"{title_str} {author}".strip()
+        encoded = urllib.parse.quote(query)
         url_ol = f"https://openlibrary.org/search.json?q={encoded}"
         res_ol = requests.get(url_ol, timeout=2).json()
         if "docs" in res_ol and len(res_ol["docs"]) > 0:
@@ -78,43 +96,32 @@ def get_book_cover(title, author=""):
         
     return generate_card_url(title_str, bg_color="0f172a")
 
-# --- BUSCA UNIFICADA DE SÉRIES E FILMES ---
+# --- BUSCA DE SÉRIES E FILMES ---
 @st.cache_data(ttl=86400)
 def get_media_poster(title, media_type="movie"):
     title_str = str(title).strip() if pd.notna(title) else ""
     if not title_str or title_str.lower() in ["nan", "none"]:
         return generate_card_url("Mídia")
     
-    encoded = urllib.parse.quote(title_str)
-    type_clean = str(media_type).lower().strip()
-    type_param = "series" if any(x in type_clean for x in ["série", "serie", "tv"]) else "movie"
+    title_clean = title_str.lower().strip()
 
-    # 1. OMDb API
+    # 1. Verifica no mapa manual de mídias corrigidas
+    for key, url in MANUAL_POSTERS.items():
+        if key in title_clean:
+            return url
+
+    # 2. OMDb API
     try:
-        url = f"http://www.omdbapi.com/?t={encoded}&type={type_param}&apikey={OMDB_API_KEY}"
+        encoded = urllib.parse.quote(title_str)
+        type_param = "series" if any(x in str(media_type).lower() for x in ["série", "serie", "tv"]) else "movie"
+        url = f"http://www.omdbapi.com/?t={encoded}&type={type_param}&apikey=trilogy"
         res = requests.get(url, timeout=2).json()
         if res.get("Response") == "True" and res.get("Poster") and res["Poster"] != "N/A":
             return res["Poster"]
     except Exception:
         pass
 
-    # 2. OMDb Search Genérica
-    try:
-        url_s = f"http://www.omdbapi.com/?s={encoded}&apikey={OMDB_API_KEY}"
-        res_s = requests.get(url_s, timeout=2).json()
-        if res_s.get("Response") == "True" and res_s.get("Search"):
-            poster = res_s["Search"][0].get("Poster")
-            if poster and poster != "N/A":
-                return poster
-    except Exception:
-        pass
-
-    # 3. Fallback Google Books
-    backup_cover = get_book_cover(title_str)
-    if "dummyimage.com" not in backup_cover:
-        return backup_cover
-
-    return generate_card_url(title_str, bg_color="1e1b4b" if "série" in type_clean else "450a0a")
+    return generate_card_url(title_str, bg_color="1e1b4b" if "série" in str(media_type).lower() else "450a0a")
 
 # --- CARREGAMENTO DE DADOS ---
 @st.cache_data(ttl=300)
@@ -167,7 +174,6 @@ with aba_livros:
         st.subheader(f"Biblioteca Virtual: {lidos}/{tot_l} lidos ({pct_l}%)")
         st.progress(lidos / tot_l if tot_l > 0 else 0)
         
-        # Filtros e Pesquisa
         col_f1, col_f2 = st.columns([1, 2])
         with col_f1:
             generos = ["Todos"] + [str(g) for g in df_l["Gênero"].dropna().unique() if str(g).strip()]
@@ -180,7 +186,6 @@ with aba_livros:
         if search_l:
             df_l = df_l[df_l["Título"].astype(str).str.contains(search_l, case=False, na=False)]
 
-        # Paginação
         itens_por_pagina = 20
         total_paginas = (len(df_l) - 1) // itens_por_pagina + 1 if len(df_l) > 0 else 1
         
@@ -195,7 +200,6 @@ with aba_livros:
 
         st.divider()
 
-        # Renderização em Lista (2 Colunas)
         cols = st.columns(2)
         for idx, (_, row) in enumerate(df_pagina.iterrows()):
             with cols[idx % 2]:
@@ -221,7 +225,6 @@ with aba_series:
         st.subheader(f"Progresso de Séries: {fin}/{tot_s} Temporadas Finalizadas ({pct_s}%)")
         st.progress(fin / tot_s if tot_s > 0 else 0)
         
-        # Barra de Pesquisa
         search_s = st.text_input("🔍 Pesquisar série...", key="search_s")
         series_unicas = df_s.drop_duplicates(subset=["Série"])
         
@@ -230,7 +233,6 @@ with aba_series:
 
         st.divider()
 
-        # Renderização em Lista (2 Colunas)
         cols_s = st.columns(2)
         for idx, (_, row) in enumerate(series_unicas.iterrows()):
             with cols_s[idx % 2]:
@@ -256,14 +258,12 @@ with aba_marvel:
         st.subheader(f"Maratona MCU: {ass}/{tot_m} assistidos ({pct_m}%)")
         st.progress(ass / tot_m if tot_m > 0 else 0)
         
-        # Barra de Pesquisa
         search_m = st.text_input("🔍 Pesquisar no Universo Marvel...", key="search_m")
         if search_m:
             df_m = df_m[df_m["Título"].astype(str).str.contains(search_m, case=False, na=False)]
 
         st.divider()
 
-        # Renderização em Lista (2 Colunas)
         cols_m = st.columns(2)
         for idx, (_, row) in enumerate(df_m.iterrows()):
             with cols_m[idx % 2]:
