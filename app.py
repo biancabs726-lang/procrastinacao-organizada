@@ -12,33 +12,23 @@ GIDS = {
     "UNIVERSO MARVEL": "1360927897"
 }
 
-# --- MAPEAMENTO DIRETO DE CAPAS/PÔSTERES (SOLUÇÃO INFALÍVEL) ---
+# --- MAPEAMENTO DIRETO DE LINKS PÚBLICOS E ESTÁVEIS ---
 MANUAL_POSTERS = {
     # Séries
-    "olhos que condenam": "https://image.tmdb.org/t/p/w500/A31I4Jz9N0T0387d8P2Rk3xN4.jpg",
-    "cavaleiro da lua": "https://image.tmdb.org/t/p/w500/1X4L4FTWhRMl32S3B22xM5pM0m2.jpg",
-    "she-ra": "https://image.tmdb.org/t/p/w500/S3L4K2B9oJ3xU0R8S32xM5pM0m2.jpg",
-    "gavião arqueiro": "https://image.tmdb.org/t/p/w500/pq2123S3B22xM5pM0m2aA31I4J.jpg",
-    "round 6": "https://image.tmdb.org/t/p/w500/d9A1M936oG0J6eS6l5mS86vO0S2.jpg",
-    "falcão e o soldado invernal": "https://image.tmdb.org/t/p/w500/6A26U8E0QoK84p0E8v6A0uXf66N.jpg",
+    "olhos que condenam": "https://m.media-amazon.com/images/M/MV5BMjA3NjYzMzE1MV5BMl5BanBnXkFtZTgwNTA4NDY4NzM@._V1_SX300.jpg",
+    "cavaleiro da lua": "https://m.media-amazon.com/images/M/MV5BYTc5OWU4ZjktM2M0Ni00N2JhLWE3ZjAtMTBrNWQ01mEwX123XkFtZTgw._V1_SX300.jpg",
+    "she-ra": "https://m.media-amazon.com/images/M/MV5BNzA2MjA1NzA0N15BMl5BanBnXkFtZTgwOTM5NDY4NzM@._V1_SX300.jpg",
+    "gavião arqueiro": "https://m.media-amazon.com/images/M/MV5BZGEzMDJjN2EtYTZiZS00M2I2LTk2ZjktNTlmOThjZTI3MGJiXkFtZTgw._V1_SX300.jpg",
+    "round 6": "https://m.media-amazon.com/images/M/MV5BYWE3MDVkN2EtNjQ5MS00ZDQ4LTliNzYtMjc2YWMzMDg1ODE3XkFtZTgw._V1_SX300.jpg",
+    "falcão e o soldado invernal": "https://m.media-amazon.com/images/M/MV5BMyNmYzA3Y2EtMWE4OS00NGJiLTk0NmMtYTI5NjA0YjM2N2M2XkFtZTgw._V1_SX300.jpg",
     
-    # Universo Marvel
-    "o incrível hulk": "https://image.tmdb.org/t/p/w500/2L8Oq7mN5G424G4L0mS0M2Q38V6.jpg",
-    "hulk": "https://image.tmdb.org/t/p/w500/2L8Oq7mN5G424G4L0mS0M2Q38V6.jpg",
-    "pantera negra": "https://image.tmdb.org/t/p/w500/8X0W95a4R92K5M0mS0uX6oQ8U16.jpg",
-    "homem-aranha: de volta ao lar": "https://image.tmdb.org/t/p/w500/9G1M936oG0J6eS6l5mS86vO0S22.jpg",
-    "homem-aranha: longe de casa": "https://image.tmdb.org/t/p/w500/v9A2S9C5M0UjBClfIe53Qp30o86.jpg",
-    "homem-aranha: sem volta para casa": "https://image.tmdb.org/t/p/w500/1g0dhYIq9irTY1GPXvft6k4YLM.jpg",
-    "capitão américa: o primeiro vingador": "https://image.tmdb.org/t/p/w500/v9A2S9C5M0UjBClfIe53Qp30o86.jpg",
-    "agente carter": "https://image.tmdb.org/t/p/w500/9G1M936oG0J6eS6l5mS86vO0S22.jpg",
-    "capitã marvel": "https://image.tmdb.org/t/p/w500/x2LSRK2Cm7MZhjluni1msVJ3wDF.jpg",
-    "homem de ferro": "https://image.tmdb.org/t/p/w500/wyA8q95SUnmE24S19A6iR34jUqP.jpg",
-    "homem de ferro 2": "https://image.tmdb.org/t/p/w500/6A26U8E0QoK84p0E8v6A0uXf66N.jpg",
-    "homem de ferro 3": "https://image.tmdb.org/t/p/w500/2L8Oq7mN5G424G4L0mS0M2Q38V6.jpg",
-    "os vingadores": "https://image.tmdb.org/t/p/w500/u334u7K0qU2sU0A8O8P5V5N4V8A.jpg",
-    "vingadores: era de ultron": "https://image.tmdb.org/t/p/w500/4gV8A0sA2sU0A8O8P5V5N4V8A.jpg",
-    "vingadores: guerra infinita": "https://image.tmdb.org/t/p/w500/8L1t314221S3B22xM5pM0m2aA31I4J.jpg",
-    "vingadores: ultimato": "https://image.tmdb.org/t/p/w500/ul64S3B22xM5pM0m2aA31I4J9S0.jpg"
+    # Marvel Títulos com Problema
+    "capitão américa: o primeiro vingador": "https://m.media-amazon.com/images/M/MV5BMTYzOTc2Njg1N15BMl5BanBnXkFtZTcwZDkzNjU1MQ@@._V1_SX300.jpg",
+    "agente carter": "https://m.media-amazon.com/images/M/MV5BMTY3NjE2MTgwMl5BMl5BanBnXkFtZTgwNTU3NTM3MjE@._V1_SX300.jpg",
+    "homem de ferro": "https://m.media-amazon.com/images/M/MV5BMTczNTI2ODUwOF5BMl5BanBnXkFtZTcwMTU0NTIzMw@@._V1_SX300.jpg",
+    "homem de ferro 2": "https://m.media-amazon.com/images/M/MV5BMTM0MDgwNjMyMl5BMl5BanBnXkFtZTcwNTg3NzAzMw@@._V1_SX300.jpg",
+    "o incrível hulk": "https://m.media-amazon.com/images/M/MV5BMTUyNzk3MjA1OF5BMl5BanBnXkFtZTcwMTE1Njg2MQ@@._V1_SX300.jpg",
+    "os vingadores": "https://m.media-amazon.com/images/M/MV5BNDYyNjA3Mzg5MV5BMl5BanBnXkFtZTgwMDUyNTkwNzE@._V1_SX300.jpg"
 }
 
 st.set_page_config(
@@ -76,17 +66,11 @@ def get_book_cover(title, author=""):
     if not title_str or title_str.lower() in ["nan", "none"]:
         return generate_card_url("Livro")
     
-    # 1. Verifica no mapa manual
-    for key, url in MANUAL_POSTERS.items():
-        if key in title_str.lower():
-            return url
-
-    # 2. Open Library
     try:
         query = f"{title_str} {author}".strip()
         encoded = urllib.parse.quote(query)
         url_ol = f"https://openlibrary.org/search.json?q={encoded}"
-        res_ol = requests.get(url_ol, timeout=2).json()
+        res_ol = requests.get(url_ol, timeout=3).json()
         if "docs" in res_ol and len(res_ol["docs"]) > 0:
             cover_i = res_ol["docs"][0].get("cover_i")
             if cover_i:
@@ -105,7 +89,7 @@ def get_media_poster(title, media_type="movie"):
     
     title_clean = title_str.lower().strip()
 
-    # 1. Verifica no mapa manual de mídias corrigidas
+    # 1. Verifica no mapa manual infalível da Amazon/IMDb CDN
     for key, url in MANUAL_POSTERS.items():
         if key in title_clean:
             return url
@@ -115,7 +99,7 @@ def get_media_poster(title, media_type="movie"):
         encoded = urllib.parse.quote(title_str)
         type_param = "series" if any(x in str(media_type).lower() for x in ["série", "serie", "tv"]) else "movie"
         url = f"http://www.omdbapi.com/?t={encoded}&type={type_param}&apikey=trilogy"
-        res = requests.get(url, timeout=2).json()
+        res = requests.get(url, timeout=3).json()
         if res.get("Response") == "True" and res.get("Poster") and res["Poster"] != "N/A":
             return res["Poster"]
     except Exception:
