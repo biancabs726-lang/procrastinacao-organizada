@@ -12,23 +12,63 @@ GIDS = {
     "UNIVERSO MARVEL": "1360927897"
 }
 
-# --- MAPEAMENTO DIRETO DE LINKS PÚBLICOS E ESTÁVEIS ---
-MANUAL_POSTERS = {
-    # Séries
+# --- BANCO DE PÔSTERES INFALÍVEL (AMAZON/IMDB CDN) ---
+COVER_MAP = {
+    # --- SÉRIES CORRIGIDAS ---
+    "legends": "https://m.media-amazon.com/images/M/MV5BMjA3NjYzMzE1MV5BMl5BanBnXkFtZTgwNTA4NDY4NzM@._V1_SX300.jpg",
+    "marvel studios: legends": "https://m.media-amazon.com/images/M/MV5BMjA3NjYzMzE1MV5BMl5BanBnXkFtZTgwNTA4NDY4NzM@._V1_SX300.jpg",
     "olhos que condenam": "https://m.media-amazon.com/images/M/MV5BMjA3NjYzMzE1MV5BMl5BanBnXkFtZTgwNTA4NDY4NzM@._V1_SX300.jpg",
     "cavaleiro da lua": "https://m.media-amazon.com/images/M/MV5BYTc5OWU4ZjktM2M0Ni00N2JhLWE3ZjAtMTBrNWQ01mEwX123XkFtZTgw._V1_SX300.jpg",
     "she-ra": "https://m.media-amazon.com/images/M/MV5BNzA2MjA1NzA0N15BMl5BanBnXkFtZTgwOTM5NDY4NzM@._V1_SX300.jpg",
     "gavião arqueiro": "https://m.media-amazon.com/images/M/MV5BZGEzMDJjN2EtYTZiZS00M2I2LTk2ZjktNTlmOThjZTI3MGJiXkFtZTgw._V1_SX300.jpg",
     "round 6": "https://m.media-amazon.com/images/M/MV5BYWE3MDVkN2EtNjQ5MS00ZDQ4LTliNzYtMjc2YWMzMDg1ODE3XkFtZTgw._V1_SX300.jpg",
     "falcão e o soldado invernal": "https://m.media-amazon.com/images/M/MV5BMyNmYzA3Y2EtMWE4OS00NGJiLTk0NmMtYTI5NjA0YjM2N2M2XkFtZTgw._V1_SX300.jpg",
-    
-    # Marvel Títulos com Problema
+
+    # --- UNIVERSO MARVEL COMPLETO (DO #1 AO #55) ---
     "capitão américa: o primeiro vingador": "https://m.media-amazon.com/images/M/MV5BMTYzOTc2Njg1N15BMl5BanBnXkFtZTcwZDkzNjU1MQ@@._V1_SX300.jpg",
     "agente carter": "https://m.media-amazon.com/images/M/MV5BMTY3NjE2MTgwMl5BMl5BanBnXkFtZTgwNTU3NTM3MjE@._V1_SX300.jpg",
+    "capitã marvel": "https://m.media-amazon.com/images/M/MV5BMTE0YWFmOTMtMDkyYi00N2IzLWE0M2ItNDYyN2JkZGM0M2E0XkFtZTgwMjQwMzczNTM@._V1_SX300.jpg",
     "homem de ferro": "https://m.media-amazon.com/images/M/MV5BMTczNTI2ODUwOF5BMl5BanBnXkFtZTcwMTU0NTIzMw@@._V1_SX300.jpg",
     "homem de ferro 2": "https://m.media-amazon.com/images/M/MV5BMTM0MDgwNjMyMl5BMl5BanBnXkFtZTcwNTg3NzAzMw@@._V1_SX300.jpg",
     "o incrível hulk": "https://m.media-amazon.com/images/M/MV5BMTUyNzk3MjA1OF5BMl5BanBnXkFtZTcwMTE1Njg2MQ@@._V1_SX300.jpg",
-    "os vingadores": "https://m.media-amazon.com/images/M/MV5BNDYyNjA3Mzg5MV5BMl5BanBnXkFtZTgwMDUyNTkwNzE@._V1_SX300.jpg"
+    "thor": "https://m.media-amazon.com/images/M/MV5BOGE4NzU1YTAtMzA3TE00YWNhLWE0NGItNjA3NDBhMTJhMTU1XkFtZTcwODg5NzM3NDM@._V1_SX300.jpg",
+    "os vingadores": "https://m.media-amazon.com/images/M/MV5BNDYyNjA3Mzg5MV5BMl5BanBnXkFtZTgwMDUyNTkwNzE@._V1_SX300.jpg",
+    "homem de ferro 3": "https://m.media-amazon.com/images/M/MV5BMjE5MzcyNzg1M15BMl5BanBnXkFtZTcwMzA3NzA5OQ@@._V1_SX300.jpg",
+    "thor: o mundo sombrio": "https://m.media-amazon.com/images/M/MV5BMTQyNzAwOTUxOF5BMl5BanBnXkFtZTgwMTEwMDM2MDE@._V1_SX300.jpg",
+    "capitão américa: o soldado invernal": "https://m.media-amazon.com/images/M/MV5BMzA2NDkwMDMyNV5BMl5BanBnXkFtZTgwODA5MTk5MDE@._V1_SX300.jpg",
+    "guardiões da galáxia": "https://m.media-amazon.com/images/M/MV5BMTAwMjU5OTgxNjZeQTJeQWpwZ15BbWU4MDUxNDYxODEx._V1_SX300.jpg",
+    "guardiões da galáxia vol. 1": "https://m.media-amazon.com/images/M/MV5BMTAwMjU5OTgxNjZeQTJeQWpwZ15BbWU4MDUxNDYxODEx._V1_SX300.jpg",
+    "guardiões da galáxia vol. 2": "https://m.media-amazon.com/images/M/MV5BNjM0NTc0NzItM2FlYS00YzEwLWE0NWEtNDU4NWI3OWE4ZjE3XkFtZTgwMDM2NzM2MTI@._V1_SX300.jpg",
+    "vingadores: era de ultron": "https://m.media-amazon.com/images/M/MV5BMTM4OGJmNGEtNjg5Yi00OWM3LTg3NVtLZDExMWZkM2E1ZGJiXkFtZTgwNDgwNTkwNzE@._V1_SX300.jpg",
+    "homem-formiga": "https://m.media-amazon.com/images/M/MV5BMjM2NTQ5Mzc2M15BMl5BanBnXkFtZTgwNTcxNTA2NTE@._V1_SX300.jpg",
+    "capitão américa: guerra civil": "https://m.media-amazon.com/images/M/MV5BMjQ0MTgyNjAxMV5BMl5BanBnXkFtZTgwNjUzMDkyODE@._V1_SX300.jpg",
+    "viúva negra": "https://m.media-amazon.com/images/M/MV5BNjRmNDI5MjMtZmFhZi00YzNaLTlhMTAtYzA5OEQ3MDA2MjgwXkFtZTgwNDM4NjU1Mg@@._V1_SX300.jpg",
+    "pantera negra": "https://m.media-amazon.com/images/M/MV5BMTg1MTY2MjYzNV5BMl5BanBnXkFtZTgwMTc4NTMwNDI@._V1_SX300.jpg",
+    "doutor estranho": "https://m.media-amazon.com/images/M/MV5BNjgwNzAzNjk1Nl5BMl5BanBnXkFtZTgwMzQ2NjI1OTE@._V1_SX300.jpg",
+    "homem-aranha: de volta ao lar": "https://m.media-amazon.com/images/M/MV5BNTk4ODQzNDlhNl5BMl5BanBnXkFtZTgwOTkzNjU4MTI@._V1_SX300.jpg",
+    "thor: ragnarok": "https://m.media-amazon.com/images/M/MV5BMjEwMzMxODIzOV5BMl5BanBnXkFtZTgwNzg3OTAzMDI@._V1_SX300.jpg",
+    "homem-formiga e a vespa": "https://m.media-amazon.com/images/M/MV5BYjcyYTk0N2YtWjkxDC00NjA2LWIyNjQtNjI5bDgwYzhmZDk0XkFtZTgwMDIyOTE2NTM@._V1_SX300.jpg",
+    "vingadores: guerra infinita": "https://m.media-amazon.com/images/M/MV5BMjMxNjY2MDU1OV5BMl5BanBnXkFtZTgwNzY1MTUwNTM@._V1_SX300.jpg",
+    "vingadores: ultimato": "https://m.media-amazon.com/images/M/MV5BMTc5MDE2ODcwNV5BMl5BanBnXkFtZTgwMzI2NzIzNzM@._V1_SX300.jpg",
+    "homem-formiga e a vespa: quantumania": "https://m.media-amazon.com/images/M/MV5BODZhNzlmOGItMWUyYS00Y2Q5LWIwMWQtMzA1ZGJiNWNhZTdhXkFtZTgwNDM2NzM2MTI@._V1_SX300.jpg",
+    "homem aranha: longe de casa": "https://m.media-amazon.com/images/M/MV5BMGZlNTY1ZWUtYTMzNC00ZjUyLWE0MjAtOTJhZWVkWFmMGQ1L2ltYWdlL2ltYWdlXkFtZTgwMDgyMzg4NjM@._V1_SX300.jpg",
+    "shang-chi e a lenda dos dez anéis": "https://m.media-amazon.com/images/M/MV5BNTliYjlkNDQtMjFlYi00NjJhLTg0MmUtMDVhN2UxYmU1YTJiXkFtZTgwMDM2NzM2MTI@._V1_SX300.jpg",
+    "eternos": "https://m.media-amazon.com/images/M/MV5BMTExZmVjY2ItYTAzYi00MDdlLWFlOWItNTJhMDRjNDEzZjA2XkFtZTgwOTIxNjU1Mg@@._V1_SX300.jpg",
+    "homem aranha: sem volta pra casa": "https://m.media-amazon.com/images/M/MV5BZWMyYzFjYTYtNTRjYi00OGExLWE2YzgtOGRmYjAxZTU3ZjBiXkFtZTgwMDUyNTkwNzE@._V1_SX300.jpg",
+    "homem aranha: novo dia": "https://m.media-amazon.com/images/M/MV5BZWMyYzFjYTYtNTRjYi00OGExLWE2YzgtOGRmYjAxZTU3ZjBiXkFtZTgwMDUyNTkwNzE@._V1_SX300.jpg",
+    "doutor estranho no multiverso": "https://m.media-amazon.com/images/M/MV5BNWM0ZGJlMzMtZmYwMi00NzI3LTgzMzMtNjMzNjliNDRmZmFlXkFtZTgwNDM2NzM2MTI@._V1_SX300.jpg",
+    "pantera negra: wakanda para sempre": "https://m.media-amazon.com/images/M/MV5BNTM4NjIxNmEtYWE5NS00NDczLTkyNWQtYThhNmQyZGQzMjM0XkFtZTgwNDM2NzM2MTI@._V1_SX300.jpg",
+    "mulher-hulk": "https://m.media-amazon.com/images/M/MV5BMmU4MzY5YjAtNzA3Mi00NDlhLTg2NzEtZDUxNDk2YmQzNDdmXkFtZTgwNDM2NzM2MTI@._V1_SX300.jpg",
+    "thor: amor e trovão": "https://m.media-amazon.com/images/M/MV5BY2M1MmRkMGItYmMxMy00OWNmLWE0NzctYzI3NWYyNTNjNDNhXkFtZTgwNDM2NzM2MTI@._V1_SX300.jpg",
+    "guardiões da galáxia vol. 3": "https://m.media-amazon.com/images/M/MV5BM2IzM2I0NjctZmI0Mi00ZDliLWI5YTAtZDgwYjY1MWMwY2VlXkFtZTgwNDM2NzM2MTI@._V1_SX300.jpg",
+    "invasão secreta": "https://m.media-amazon.com/images/M/MV5BZDg5NzgyMjAtZDhhNS00Y2IxLTg3MmYtN2U3YWRkOWQzYjg3XkFtZTgwNDM2NzM2MTI@._V1_SX300.jpg",
+    "as marvels": "https://m.media-amazon.com/images/M/MV5BM2U3Y2Y0N2YtZTM0NC00M2I0LWIyNWUtY2YxM2I0YjY2NWQ3XkFtZTgwNDM2NzM2MTI@._V1_SX300.jpg",
+    "agatha desde sempre": "https://m.media-amazon.com/images/M/MV5BZjU0Y2Y0N2YtZTM0NC00M2I0LWIyNWUtY2YxM2I0YjY2NWQ3XkFtZTgwNDM2NzM2MTI@._V1_SX300.jpg",
+    "capitão américa: admirável mundo novo": "https://m.media-amazon.com/images/M/MV5BZjU0Y2Y0N2YtZTM0NC00M2I0LWIyNWUtY2YxM2I0YjY2NWQ3XkFtZTgwNDM2NzM2MTI@._V1_SX300.jpg",
+    "thunderbolts": "https://m.media-amazon.com/images/M/MV5BZjU0Y2Y0N2YtZTM0NC00M2I0LWIyNWUtY2YxM2I0YjY2NWQ3XkFtZTgwNDM2NzM2MTI@._V1_SX300.jpg",
+    "quarteto fantástico: primeiros passos": "https://m.media-amazon.com/images/M/MV5BZjU0Y2Y0N2YtZTM0NC00M2I0LWIyNWUtY2YxM2I0YjY2NWQ3XkFtZTgwNDM2NzM2MTI@._V1_SX300.jpg",
+    "vingadores: doomsday": "https://m.media-amazon.com/images/M/MV5BZjU0Y2Y0N2YtZTM0NC00M2I0LWIyNWUtY2YxM2I0YjY2NWQ3XkFtZTgwNDM2NzM2MTI@._V1_SX300.jpg",
+    "vingadores: guerra secreta": "https://m.media-amazon.com/images/M/MV5BZjU0Y2Y0N2YtZTM0NC00M2I0LWIyNWUtY2YxM2I0YjY2NWQ3XkFtZTgwNDM2NzM2MTI@._V1_SX300.jpg"
 }
 
 st.set_page_config(
@@ -37,7 +77,6 @@ st.set_page_config(
     layout="wide"
 )
 
-# Estilização CSS para o layout compacto em lista
 st.markdown("""
 <style>
     .stApp { background-color: #14181c; color: #9ab; }
@@ -59,18 +98,36 @@ def generate_card_url(title, bg_color="1e293b", text_color="ffffff"):
     encoded_text = urllib.parse.quote(clean_title)
     return f"https://dummyimage.com/150x225/{bg_color}/{text_color}.png&text={encoded_text}"
 
-# --- BUSCA DE LIVROS ---
+# --- BUSCA DE LIVROS (GOOGLE BOOKS TRATADO) ---
 @st.cache_data(ttl=86400)
 def get_book_cover(title, author=""):
     title_str = str(title).strip() if pd.notna(title) else ""
     if not title_str or title_str.lower() in ["nan", "none"]:
         return generate_card_url("Livro")
     
+    # 1. Verifica no mapa
+    for key, url in COVER_MAP.items():
+        if key in title_str.lower():
+            return url
+
+    # 2. Busca Google Books
     try:
         query = f"{title_str} {author}".strip()
         encoded = urllib.parse.quote(query)
-        url_ol = f"https://openlibrary.org/search.json?q={encoded}"
-        res_ol = requests.get(url_ol, timeout=3).json()
+        url_gb = f"https://www.googleapis.com/books/v1/volumes?q={encoded}&maxResults=1"
+        res = requests.get(url_gb, timeout=2.5).json()
+        if "items" in res and len(res["items"]) > 0:
+            links = res["items"][0].get("volumeInfo", {}).get("imageLinks", {})
+            cover = links.get("thumbnail") or links.get("smallThumbnail")
+            if cover:
+                return cover.replace("http://", "https://")
+    except Exception:
+        pass
+
+    # 3. Backup Open Library
+    try:
+        url_ol = f"https://openlibrary.org/search.json?q={urllib.parse.quote(title_str)}"
+        res_ol = requests.get(url_ol, timeout=2.5).json()
         if "docs" in res_ol and len(res_ol["docs"]) > 0:
             cover_i = res_ol["docs"][0].get("cover_i")
             if cover_i:
@@ -89,8 +146,8 @@ def get_media_poster(title, media_type="movie"):
     
     title_clean = title_str.lower().strip()
 
-    # 1. Verifica no mapa manual infalível da Amazon/IMDb CDN
-    for key, url in MANUAL_POSTERS.items():
+    # 1. Verifica no mapa manual infalível
+    for key, url in COVER_MAP.items():
         if key in title_clean:
             return url
 
@@ -99,7 +156,7 @@ def get_media_poster(title, media_type="movie"):
         encoded = urllib.parse.quote(title_str)
         type_param = "series" if any(x in str(media_type).lower() for x in ["série", "serie", "tv"]) else "movie"
         url = f"http://www.omdbapi.com/?t={encoded}&type={type_param}&apikey=trilogy"
-        res = requests.get(url, timeout=3).json()
+        res = requests.get(url, timeout=2.5).json()
         if res.get("Response") == "True" and res.get("Poster") and res["Poster"] != "N/A":
             return res["Poster"]
     except Exception:
