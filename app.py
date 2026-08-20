@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import requests
 import urllib.parse
 import re
 
@@ -34,15 +35,15 @@ st.markdown("""
     }
     .pdf-btn {
         display: inline-block;
-        padding: 6px 12px;
+        padding: 5px 10px;
         background-color: #ff4b4b;
         color: white !important;
         border-radius: 4px;
         text-decoration: none;
-        font-size: 13px;
+        font-size: 12px;
         font-weight: bold;
-        margin-top: 6px;
-        margin-bottom: 6px;
+        margin-top: 4px;
+        margin-bottom: 4px;
     }
     .pdf-btn:hover {
         background-color: #e03e3e;
@@ -50,12 +51,40 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-def generate_fallback_card(text, bg="1e293b"):
-    clean_title = re.sub(r'[^\w\s]', '', str(text)).strip()[:15]
-    encoded = urllib.parse.quote(clean_title if clean_title else "Item")
-    return f"https://dummyimage.com/150x225/{bg}/ffffff.png&text={encoded}"
+# BUSCADOR AUTOMÁTICO DE CAPAS VIA GOOGLE BOOKS / OPEN LIBRARY
+@st.cache_data(ttl=86400)
+def fetch_online_poster(title_text):
+    clean_title = re.sub(r'[^\w\s]', '', str(title_text)).replace("**", "").strip()
+    if not clean_title or clean_title.lower() in ["nan", "none"]:
+        return "https://dummyimage.com/150x225/1e293b/ffffff.png&text=Sem+Capa"
 
-# --- CARREGAMENTO DE DADOS ---
+    # 1. Tenta Google Books API
+    try:
+        url_gb = f"https://www.googleapis.com/books/v1/volumes?q={urllib.parse.quote(clean_title)}&maxResults=1"
+        res_gb = requests.get(url_gb, timeout=2).json()
+        if "items" in res_gb and len(res_gb["items"]) > 0:
+            links = res_gb["items"][0].get("volumeInfo", {}).get("imageLinks", {})
+            cover = links.get("thumbnail") or links.get("smallThumbnail")
+            if cover:
+                return cover.replace("http://", "https://")
+    except Exception:
+        pass
+
+    # 2. Tenta Open Library API
+    try:
+        url_ol = f"https://openlibrary.org/search.json?title={urllib.parse.quote(clean_title)}"
+        res_ol = requests.get(url_ol, timeout=2).json()
+        if res_ol.get("docs") and len(res_ol["docs"]) > 0:
+            cover_i = res_ol["docs"][0].get("cover_i")
+            if cover_i:
+                return f"https://covers.openlibrary.org/b/id/{cover_i}-M.jpg"
+    except Exception:
+        pass
+
+    encoded = urllib.parse.quote(clean_title[:15])
+    return f"https://dummyimage.com/150x225/1e293b/ffffff.png&text={encoded}"
+
+# CARREGAMENTO DE DADOS
 @st.cache_data(ttl=60)
 def load_data(sheet_name):
     try:
@@ -67,7 +96,7 @@ def load_data(sheet_name):
         st.error(f"Erro ao carregar {sheet_name}: {e}")
         return pd.DataFrame()
 
-# --- INTERFACE PRINCIPAL ---
+# INTERFACE PRINCIPAL
 st.title("🍿 Procrastinação Organizada")
 st.caption("Seu Hub Pessoal de Entretenimento")
 
@@ -79,9 +108,16 @@ with aba_livros:
     if not data_l.empty:
         df_l = data_l.iloc[3:].copy().dropna(how="all")
         
-        # Mapeamento de colunas padrão da aba Livros
-        # Coluna 1: Título | Coluna 2: Autor | Coluna 3: Gênero | Coluna 4: Status | Coluna 5 (Capa): Link do PDF
-        df_l.columns = ["Index", "Título", "Autor", "Gênero", "Status", "Capa"] + list(df_l.columns[6:])
+        # Mapeamento correto das colunas
+        cols_count = df_l.shape[1]
+        if cols_count >= 5:
+            df_l = df_l.iloc[:, [1, 2, 3, 4, 4]] if cols_count == 5 else df_l.iloc[:, [1, 2, 3, 4, 5]]
+            df_l.columns = ["Título", "Autor", "Gênero", "Status", "Link_Capa_PDF"]
+        else:
+            df_l = df_l.iloc[:, [1, 2, 3, 4]]
+            df_l.columns = ["Título", "Autor", "Gênero", "Status"]
+            df_l["Link_Capa_PDF"] = ""
+
         df_l = df_l[df_l["Título"].fillna("").astype(str).str.strip() != ""]
         df_l = df_l[~df_l["Título"].astype(str).str.upper().isin(["TITULO", "TÍTULO"])]
 
@@ -92,7 +128,7 @@ with aba_livros:
         st.subheader(f"Biblioteca Virtual: {lidos}/{tot_l} lidos ({pct_l}%)")
         st.progress(lidos / tot_l if tot_l > 0 else 0)
 
-        # Filtros e Pesquisa
+        # Filtros
         col_f1, col_f2 = st.columns([1, 2])
         with col_f1:
             generos = ["Todos"] + [str(g) for g in df_l["Gênero"].dropna().unique() if str(g).strip()]
@@ -125,21 +161,22 @@ with aba_livros:
             with cols[idx % 2]:
                 c1, c2 = st.columns([1, 4])
                 
-                # Trata link da Coluna Capa (PDF do Drive)
-                capa_val = str(row.get("Capa", "")).strip()
-                is_pdf_link = any(k in capa_val.lower() for k in ["drive.google.com", "docs.google.com", ".pdf", "http"])
+                link_val = str(row.get("Link_Capa_PDF", "")).strip()
+                has_pdf_link = any(k in link_val.lower() for k in ["http", "drive.google.com", "docs.google.com", ".pdf"])
                 
                 with c1:
-                    # Exibe imagem promocional ou card estilizado
-                    cover_img = generate_fallback_card(row["Título"], bg="0f172a")
-                    st.image(cover_img)
+                    # Se houver link direto de imagem na planilha usa ele, senão busca capa online
+                    if has_pdf_link and any(ext in link_val.lower() for ext in [".jpg", ".png", ".jpeg", "webp"]):
+                        img_url = link_val
+                    else:
+                        img_url = fetch_online_poster(row["Título"])
+                    st.image(img_url)
                 with c2:
                     st.write(f"**#{inicio + idx + 1} - {row['Título']}**")
                     st.caption(f"✍️ {row['Autor']} | 🏷️ {row['Gênero']}")
                     
-                    # Botão Direto para o PDF do Google Drive
-                    if is_pdf_link:
-                        st.markdown(f'<a href="{capa_val}" target="_blank" class="pdf-btn">📄 Abrir PDF no Drive</a>', unsafe_allow_html=True)
+                    if has_pdf_link:
+                        st.markdown(f'<a href="{link_val}" target="_blank" class="pdf-btn">📄 Abrir PDF no Drive</a>', unsafe_allow_html=True)
                     else:
                         st.caption("📄 PDF não disponível")
 
@@ -147,7 +184,7 @@ with aba_livros:
                     st.checkbox("Lido", value=is_lido, key=f"livro_{inicio + idx}")
                 st.markdown("---")
 
-# 2. TRACKER DE SÉRIES
+# 2. TRACKER DE SÉRIES (EXIBE TODAS AS TEMPORADAS)
 with aba_series:
     data_s = load_data("SÉRIES")
     if not data_s.empty:
@@ -165,22 +202,22 @@ with aba_series:
         st.progress(fin / tot_s if tot_s > 0 else 0)
         
         search_s = st.text_input("🔍 Pesquisar série...", key="search_s")
-        series_unicas = df_s.drop_duplicates(subset=["Série"])
         
         if search_s:
-            series_unicas = series_unicas[series_unicas["Série"].astype(str).str.contains(search_s, case=False, na=False)]
+            df_s = df_s[df_s["Série"].astype(str).str.contains(search_s, case=False, na=False)]
 
         st.divider()
 
         cols_s = st.columns(2)
-        for idx, (_, row) in enumerate(series_unicas.iterrows()):
+        for idx, (_, row) in enumerate(df_s.iterrows()):
             with cols_s[idx % 2]:
                 c1, c2 = st.columns([1, 4])
+                clean_s_title = str(row["Série"]).replace("**", "").strip()
                 with c1:
-                    poster_url = generate_fallback_card(row["Série"], bg="1e1b4b")
+                    poster_url = fetch_online_poster(clean_s_title)
                     st.image(poster_url)
                 with c2:
-                    st.write(f"**#{idx+1} - {row['Série']}**")
+                    st.write(f"**#{idx+1} - {clean_s_title}**")
                     st.caption(f"📺 {row['Temporada']} | 🍿 {row['Streaming']}")
                     is_finalizada = (str(row["Status"]).upper().strip() == "FINALIZADA")
                     st.checkbox("Finalizada", value=is_finalizada, key=f"serie_{idx}")
@@ -212,11 +249,12 @@ with aba_marvel:
         for idx, (_, row) in enumerate(df_m.iterrows()):
             with cols_m[idx % 2]:
                 c1, c2 = st.columns([1, 4])
+                clean_m_title = str(row["Título"]).replace("**", "").strip()
                 with c1:
-                    poster_url = generate_fallback_card(row["Título"], bg="450a0a")
+                    poster_url = fetch_online_poster(clean_m_title)
                     st.image(poster_url)
                 with c2:
-                    st.write(f"**#{idx+1} - {row['Título']}**")
+                    st.write(f"**#{idx+1} - {clean_m_title}**")
                     st.caption(f"🎬 {row['Tipo']} | 📅 {row['Ano']}")
                     is_checked = (str(row["Status"]).upper().strip() == "SIM")
                     st.checkbox("Assistido", value=is_checked, key=f"mcu_{idx}")
