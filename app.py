@@ -22,7 +22,6 @@ st.set_page_config(
 # Estilização CSS: Tema Claro, Cards Limpos, Pesquisa Transparente e Barra Verde
 st.markdown("""
 <style>
-    /* Fundo Claro Principal */
     .stApp { 
         background-color: #ffffff !important; 
         color: #1e293b !important; 
@@ -31,12 +30,10 @@ st.markdown("""
         color: #0f172a !important; 
     }
     
-    /* Barra de Progresso Verde Padrão */
     .stProgress > div > div > div > div { 
         background-color: #22c55e !important; 
     }
     
-    /* Pôsteres e Capas (85px x 130px) */
     div[data-testid="stImage"] img {
         border-radius: 6px !important;
         box-shadow: 0 2px 6px rgba(0,0,0,0.1) !important;
@@ -45,7 +42,6 @@ st.markdown("""
         width: 85px !important;
     }
 
-    /* Botão do PDF */
     .pdf-btn {
         display: inline-block;
         padding: 4px 8px;
@@ -62,7 +58,6 @@ st.markdown("""
         background-color: #dc2626;
     }
 
-    /* Barra de Pesquisa Compacta e Transparente */
     div[data-testid="stTextInput"] {
         max-width: 320px !important;
     }
@@ -73,7 +68,6 @@ st.markdown("""
         color: #0f172a !important;
     }
 
-    /* Botão de Adicionar Pequeno */
     button[kind="secondaryFormSubmit"], div[data-testid="stPopover"] button {
         font-size: 12px !important;
         padding: 2px 10px !important;
@@ -81,7 +75,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# BUSCADOR DE CAPAS EM NUVEM
+# BUSCADOR OTIMIZADO DE CAPAS EM NUVEM
 @st.cache_data(ttl=86400)
 def fetch_online_poster(title_text):
     clean_title = re.sub(r'[^\w\s]', '', str(title_text)).replace("**", "").strip()
@@ -91,7 +85,7 @@ def fetch_online_poster(title_text):
     # 1. Google Books API
     try:
         url_gb = f"https://www.googleapis.com/books/v1/volumes?q={urllib.parse.quote(clean_title)}&maxResults=1"
-        res_gb = requests.get(url_gb, timeout=2).json()
+        res_gb = requests.get(url_gb, timeout=2.5).json()
         if "items" in res_gb and len(res_gb["items"]) > 0:
             links = res_gb["items"][0].get("volumeInfo", {}).get("imageLinks", {})
             cover = links.get("thumbnail") or links.get("smallThumbnail")
@@ -103,7 +97,7 @@ def fetch_online_poster(title_text):
     # 2. Open Library API
     try:
         url_ol = f"https://openlibrary.org/search.json?title={urllib.parse.quote(clean_title)}"
-        res_ol = requests.get(url_ol, timeout=2).json()
+        res_ol = requests.get(url_ol, timeout=2.5).json()
         if res_ol.get("docs") and len(res_ol["docs"]) > 0:
             cover_i = res_ol["docs"][0].get("cover_i")
             if cover_i:
@@ -138,7 +132,12 @@ with aba_livros:
     if not data_l.empty:
         df_l = data_l.iloc[3:].copy().dropna(how="all")
         
-        # Mapeamento de Colunas: [0: Capa/PDF, 1: Título, 2: Autor, 3: Gênero, 4: Status]
+        # Estrutura Exata da Planilha Aba Livros:
+        # Coluna 0: Capa / PDF (Drive)
+        # Coluna 1: Título
+        # Coluna 2: Autor
+        # Coluna 3: Gênero
+        # Coluna 4: Status
         cols_count = df_l.shape[1]
         if cols_count >= 5:
             df_l = df_l.iloc[:, [0, 1, 2, 3, 4]]
@@ -157,7 +156,6 @@ with aba_livros:
         st.subheader(f"Biblioteca Virtual: {lidos}/{tot_l} lidos ({pct_l}%)")
         st.progress(lidos / tot_l if tot_l > 0 else 0)
 
-        # Botão Pequeno de Adicionar
         with st.popover("➕ Adicionar Livro"):
             st.write("**Cadastrar Livro**")
             novo_pdf = st.text_input("Link do PDF no Google Drive", key="add_l_pdf")
@@ -170,7 +168,6 @@ with aba_livros:
                 st.success("Salvo com sucesso!")
                 st.rerun()
 
-        # Filtros e Pesquisa Compacta
         col_f1, col_f2 = st.columns([1, 2])
         with col_f1:
             generos = ["Todos"] + [str(g) for g in df_l["Gênero"].dropna().unique() if str(g).strip()]
@@ -183,7 +180,6 @@ with aba_livros:
         if search_l:
             df_l = df_l[df_l["Título"].astype(str).str.contains(search_l, case=False, na=False)]
 
-        # Paginação
         itens_por_pagina = 20
         total_paginas = (len(df_l) - 1) // itens_por_pagina + 1 if len(df_l) > 0 else 1
         
@@ -218,12 +214,14 @@ with aba_livros:
                     
                     if has_pdf_link:
                         st.markdown(f'<a href="{link_val}" target="_blank" class="pdf-btn">📄 Abrir PDF no Drive</a>', unsafe_allow_html=True)
-                    
+                    else:
+                        st.caption("📄 PDF não disponível")
+
                     is_lido = (str(row["Status"]).upper().strip() == "LIDO")
                     st.checkbox("Lido", value=is_lido, key=f"livro_{inicio + idx}")
                 st.markdown("---")
 
-# 2. TRACKER DE SÉRIES (COMPACTADO COM MENU SUSPENSO DE TEMPORADAS)
+# 2. TRACKER DE SÉRIES (AGRUPADO COM STATUS SINCRONIZADO POR TEMPORADA)
 with aba_series:
     data_s = load_data("SÉRIES")
     if not data_s.empty:
@@ -258,7 +256,6 @@ with aba_series:
 
         st.divider()
 
-        # Agrupamento Mantendo Ordem Original da Planilha
         grouped_series = df_s.groupby("Série", sort=False)
         series_list = list(grouped_series)
 
@@ -276,18 +273,33 @@ with aba_series:
                     st.write(f"**#{idx+1} - {clean_s_title}**")
                     st.caption(f"🍿 {streaming_info}")
                     
-                    # Menu Suspenso de Temporadas
-                    temp_opcoes = [f"{row['Temporada']}" for _, row in grupo.iterrows()]
+                    # Seleção de Temporadas
+                    temp_opcoes = [str(t) for t in grupo["Temporada"].values]
                     temp_selecionada = st.selectbox("Temporada:", temp_opcoes, key=f"select_temp_{idx}")
                     
-                    # Status da Temporada Selecionada
-                    row_selecionada = grupo[grupo["Temporada"].astype(str) == temp_selecionada.split(" - ")[-1]].iloc[0] if temp_selecionada in grupo["Temporada"].values else grupo.iloc[0]
-                    status_atual = str(row_selecionada["Status"]).upper().strip()
+                    # Filtra a temporada exata no dataframe
+                    subset_temp = grupo[grupo["Temporada"].astype(str) == str(temp_selecionada)]
+                    status_raw = str(subset_temp["Status"].iloc[0]).upper().strip() if not subset_temp.empty else "NÃO INICIADO"
                     
                     opcoes_status = ["NÃO INICIADO", "EM ANDAMENTO", "FINALIZADA"]
-                    index_status = opcoes_status.index(status_atual) if status_atual in opcoes_status else 0
                     
-                    st.radio("Status da Temporada:", opcoes_status, index=index_status, key=f"status_temp_{idx}", horizontal=True)
+                    if "FINALIZAD" in status_raw:
+                        mapped_status = "FINALIZADA"
+                    elif "ANDAMENTO" in status_raw:
+                        mapped_status = "EM ANDAMENTO"
+                    else:
+                        mapped_status = "NÃO INICIADO"
+                        
+                    idx_radio = opcoes_status.index(mapped_status)
+                    
+                    # O radio usa a combinação {idx}_{temp_selecionada} no key para alternar o estado dinamicamente ao trocar de temporada
+                    st.radio(
+                        "Status da Temporada:", 
+                        opcoes_status, 
+                        index=idx_radio, 
+                        key=f"radio_status_{idx}_{temp_selecionada}", 
+                        horizontal=True
+                    )
 
                 st.markdown("---")
 
