@@ -12,71 +12,13 @@ GIDS = {
     "UNIVERSO MARVEL": "1360927897"
 }
 
-# --- BANCO DE PÔSTERES INFALÍVEL (AMAZON/IMDB CDN) ---
-COVER_MAP = {
-    # --- SÉRIES CORRIGIDAS ---
-    "legends": "https://m.media-amazon.com/images/M/MV5BMjA3NjYzMzE1MV5BMl5BanBnXkFtZTgwNTA4NDY4NzM@._V1_SX300.jpg",
-    "marvel studios: legends": "https://m.media-amazon.com/images/M/MV5BMjA3NjYzMzE1MV5BMl5BanBnXkFtZTgwNTA4NDY4NzM@._V1_SX300.jpg",
-    "olhos que condenam": "https://m.media-amazon.com/images/M/MV5BMjA3NjYzMzE1MV5BMl5BanBnXkFtZTgwNTA4NDY4NzM@._V1_SX300.jpg",
-    "cavaleiro da lua": "https://m.media-amazon.com/images/M/MV5BYTc5OWU4ZjktM2M0Ni00N2JhLWE3ZjAtMTBrNWQ01mEwX123XkFtZTgw._V1_SX300.jpg",
-    "she-ra": "https://m.media-amazon.com/images/M/MV5BNzA2MjA1NzA0N15BMl5BanBnXkFtZTgwOTM5NDY4NzM@._V1_SX300.jpg",
-    "gavião arqueiro": "https://m.media-amazon.com/images/M/MV5BZGEzMDJjN2EtYTZiZS00M2I2LTk2ZjktNTlmOThjZTI3MGJiXkFtZTgw._V1_SX300.jpg",
-    "round 6": "https://m.media-amazon.com/images/M/MV5BYWE3MDVkN2EtNjQ5MS00ZDQ4LTliNzYtMjc2YWMzMDg1ODE3XkFtZTgw._V1_SX300.jpg",
-    "falcão e o soldado invernal": "https://m.media-amazon.com/images/M/MV5BMyNmYzA3Y2EtMWE4OS00NGJiLTk0NmMtYTI5NjA0YjM2N2M2XkFtZTgw._V1_SX300.jpg",
-
-    # --- UNIVERSO MARVEL COMPLETO (DO #1 AO #55) ---
-    "capitão américa: o primeiro vingador": "https://m.media-amazon.com/images/M/MV5BMTYzOTc2Njg1N15BMl5BanBnXkFtZTcwZDkzNjU1MQ@@._V1_SX300.jpg",
-    "agente carter": "https://m.media-amazon.com/images/M/MV5BMTY3NjE2MTgwMl5BMl5BanBnXkFtZTgwNTU3NTM3MjE@._V1_SX300.jpg",
-    "capitã marvel": "https://m.media-amazon.com/images/M/MV5BMTE0YWFmOTMtMDkyYi00N2IzLWE0M2ItNDYyN2JkZGM0M2E0XkFtZTgwMjQwMzczNTM@._V1_SX300.jpg",
-    "homem de ferro": "https://m.media-amazon.com/images/M/MV5BMTczNTI2ODUwOF5BMl5BanBnXkFtZTcwMTU0NTIzMw@@._V1_SX300.jpg",
-    "homem de ferro 2": "https://m.media-amazon.com/images/M/MV5BMTM0MDgwNjMyMl5BMl5BanBnXkFtZTcwNTg3NzAzMw@@._V1_SX300.jpg",
-    "o incrível hulk": "https://m.media-amazon.com/images/M/MV5BMTUyNzk3MjA1OF5BMl5BanBnXkFtZTcwMTE1Njg2MQ@@._V1_SX300.jpg",
-    "thor": "https://m.media-amazon.com/images/M/MV5BOGE4NzU1YTAtMzA3TE00YWNhLWE0NGItNjA3NDBhMTJhMTU1XkFtZTcwODg5NzM3NDM@._V1_SX300.jpg",
-    "os vingadores": "https://m.media-amazon.com/images/M/MV5BNDYyNjA3Mzg5MV5BMl5BanBnXkFtZTgwMDUyNTkwNzE@._V1_SX300.jpg",
-    "homem de ferro 3": "https://m.media-amazon.com/images/M/MV5BMjE5MzcyNzg1M15BMl5BanBnXkFtZTcwMzA3NzA5OQ@@._V1_SX300.jpg",
-    "thor: o mundo sombrio": "https://m.media-amazon.com/images/M/MV5BMTQyNzAwOTUxOF5BMl5BanBnXkFtZTgwMTEwMDM2MDE@._V1_SX300.jpg",
-    "capitão américa: o soldado invernal": "https://m.media-amazon.com/images/M/MV5BMzA2NDkwMDMyNV5BMl5BanBnXkFtZTgwODA5MTk5MDE@._V1_SX300.jpg",
-    "guardiões da galáxia": "https://m.media-amazon.com/images/M/MV5BMTAwMjU5OTgxNjZeQTJeQWpwZ15BbWU4MDUxNDYxODEx._V1_SX300.jpg",
-    "guardiões da galáxia vol. 1": "https://m.media-amazon.com/images/M/MV5BMTAwMjU5OTgxNjZeQTJeQWpwZ15BbWU4MDUxNDYxODEx._V1_SX300.jpg",
-    "guardiões da galáxia vol. 2": "https://m.media-amazon.com/images/M/MV5BNjM0NTc0NzItM2FlYS00YzEwLWE0NWEtNDU4NWI3OWE4ZjE3XkFtZTgwMDM2NzM2MTI@._V1_SX300.jpg",
-    "vingadores: era de ultron": "https://m.media-amazon.com/images/M/MV5BMTM4OGJmNGEtNjg5Yi00OWM3LTg3NVtLZDExMWZkM2E1ZGJiXkFtZTgwNDgwNTkwNzE@._V1_SX300.jpg",
-    "homem-formiga": "https://m.media-amazon.com/images/M/MV5BMjM2NTQ5Mzc2M15BMl5BanBnXkFtZTgwNTcxNTA2NTE@._V1_SX300.jpg",
-    "capitão américa: guerra civil": "https://m.media-amazon.com/images/M/MV5BMjQ0MTgyNjAxMV5BMl5BanBnXkFtZTgwNjUzMDkyODE@._V1_SX300.jpg",
-    "viúva negra": "https://m.media-amazon.com/images/M/MV5BNjRmNDI5MjMtZmFhZi00YzNaLTlhMTAtYzA5OEQ3MDA2MjgwXkFtZTgwNDM4NjU1Mg@@._V1_SX300.jpg",
-    "pantera negra": "https://m.media-amazon.com/images/M/MV5BMTg1MTY2MjYzNV5BMl5BanBnXkFtZTgwMTc4NTMwNDI@._V1_SX300.jpg",
-    "doutor estranho": "https://m.media-amazon.com/images/M/MV5BNjgwNzAzNjk1Nl5BMl5BanBnXkFtZTgwMzQ2NjI1OTE@._V1_SX300.jpg",
-    "homem-aranha: de volta ao lar": "https://m.media-amazon.com/images/M/MV5BNTk4ODQzNDlhNl5BMl5BanBnXkFtZTgwOTkzNjU4MTI@._V1_SX300.jpg",
-    "thor: ragnarok": "https://m.media-amazon.com/images/M/MV5BMjEwMzMxODIzOV5BMl5BanBnXkFtZTgwNzg3OTAzMDI@._V1_SX300.jpg",
-    "homem-formiga e a vespa": "https://m.media-amazon.com/images/M/MV5BYjcyYTk0N2YtWjkxDC00NjA2LWIyNjQtNjI5bDgwYzhmZDk0XkFtZTgwMDIyOTE2NTM@._V1_SX300.jpg",
-    "vingadores: guerra infinita": "https://m.media-amazon.com/images/M/MV5BMjMxNjY2MDU1OV5BMl5BanBnXkFtZTgwNzY1MTUwNTM@._V1_SX300.jpg",
-    "vingadores: ultimato": "https://m.media-amazon.com/images/M/MV5BMTc5MDE2ODcwNV5BMl5BanBnXkFtZTgwMzI2NzIzNzM@._V1_SX300.jpg",
-    "homem-formiga e a vespa: quantumania": "https://m.media-amazon.com/images/M/MV5BODZhNzlmOGItMWUyYS00Y2Q5LWIwMWQtMzA1ZGJiNWNhZTdhXkFtZTgwNDM2NzM2MTI@._V1_SX300.jpg",
-    "homem aranha: longe de casa": "https://m.media-amazon.com/images/M/MV5BMGZlNTY1ZWUtYTMzNC00ZjUyLWE0MjAtOTJhZWVkWFmMGQ1L2ltYWdlL2ltYWdlXkFtZTgwMDgyMzg4NjM@._V1_SX300.jpg",
-    "shang-chi e a lenda dos dez anéis": "https://m.media-amazon.com/images/M/MV5BNTliYjlkNDQtMjFlYi00NjJhLTg0MmUtMDVhN2UxYmU1YTJiXkFtZTgwMDM2NzM2MTI@._V1_SX300.jpg",
-    "eternos": "https://m.media-amazon.com/images/M/MV5BMTExZmVjY2ItYTAzYi00MDdlLWFlOWItNTJhMDRjNDEzZjA2XkFtZTgwOTIxNjU1Mg@@._V1_SX300.jpg",
-    "homem aranha: sem volta pra casa": "https://m.media-amazon.com/images/M/MV5BZWMyYzFjYTYtNTRjYi00OGExLWE2YzgtOGRmYjAxZTU3ZjBiXkFtZTgwMDUyNTkwNzE@._V1_SX300.jpg",
-    "homem aranha: novo dia": "https://m.media-amazon.com/images/M/MV5BZWMyYzFjYTYtNTRjYi00OGExLWE2YzgtOGRmYjAxZTU3ZjBiXkFtZTgwMDUyNTkwNzE@._V1_SX300.jpg",
-    "doutor estranho no multiverso": "https://m.media-amazon.com/images/M/MV5BNWM0ZGJlMzMtZmYwMi00NzI3LTgzMzMtNjMzNjliNDRmZmFlXkFtZTgwNDM2NzM2MTI@._V1_SX300.jpg",
-    "pantera negra: wakanda para sempre": "https://m.media-amazon.com/images/M/MV5BNTM4NjIxNmEtYWE5NS00NDczLTkyNWQtYThhNmQyZGQzMjM0XkFtZTgwNDM2NzM2MTI@._V1_SX300.jpg",
-    "mulher-hulk": "https://m.media-amazon.com/images/M/MV5BMmU4MzY5YjAtNzA3Mi00NDlhLTg2NzEtZDUxNDk2YmQzNDdmXkFtZTgwNDM2NzM2MTI@._V1_SX300.jpg",
-    "thor: amor e trovão": "https://m.media-amazon.com/images/M/MV5BY2M1MmRkMGItYmMxMy00OWNmLWE0NzctYzI3NWYyNTNjNDNhXkFtZTgwNDM2NzM2MTI@._V1_SX300.jpg",
-    "guardiões da galáxia vol. 3": "https://m.media-amazon.com/images/M/MV5BM2IzM2I0NjctZmI0Mi00ZDliLWI5YTAtZDgwYjY1MWMwY2VlXkFtZTgwNDM2NzM2MTI@._V1_SX300.jpg",
-    "invasão secreta": "https://m.media-amazon.com/images/M/MV5BZDg5NzgyMjAtZDhhNS00Y2IxLTg3MmYtN2U3YWRkOWQzYjg3XkFtZTgwNDM2NzM2MTI@._V1_SX300.jpg",
-    "as marvels": "https://m.media-amazon.com/images/M/MV5BM2U3Y2Y0N2YtZTM0NC00M2I0LWIyNWUtY2YxM2I0YjY2NWQ3XkFtZTgwNDM2NzM2MTI@._V1_SX300.jpg",
-    "agatha desde sempre": "https://m.media-amazon.com/images/M/MV5BZjU0Y2Y0N2YtZTM0NC00M2I0LWIyNWUtY2YxM2I0YjY2NWQ3XkFtZTgwNDM2NzM2MTI@._V1_SX300.jpg",
-    "capitão américa: admirável mundo novo": "https://m.media-amazon.com/images/M/MV5BZjU0Y2Y0N2YtZTM0NC00M2I0LWIyNWUtY2YxM2I0YjY2NWQ3XkFtZTgwNDM2NzM2MTI@._V1_SX300.jpg",
-    "thunderbolts": "https://m.media-amazon.com/images/M/MV5BZjU0Y2Y0N2YtZTM0NC00M2I0LWIyNWUtY2YxM2I0YjY2NWQ3XkFtZTgwNDM2NzM2MTI@._V1_SX300.jpg",
-    "quarteto fantástico: primeiros passos": "https://m.media-amazon.com/images/M/MV5BZjU0Y2Y0N2YtZTM0NC00M2I0LWIyNWUtY2YxM2I0YjY2NWQ3XkFtZTgwNDM2NzM2MTI@._V1_SX300.jpg",
-    "vingadores: doomsday": "https://m.media-amazon.com/images/M/MV5BZjU0Y2Y0N2YtZTM0NC00M2I0LWIyNWUtY2YxM2I0YjY2NWQ3XkFtZTgwNDM2NzM2MTI@._V1_SX300.jpg",
-    "vingadores: guerra secreta": "https://m.media-amazon.com/images/M/MV5BZjU0Y2Y0N2YtZTM0NC00M2I0LWIyNWUtY2YxM2I0YjY2NWQ3XkFtZTgwNDM2NzM2MTI@._V1_SX300.jpg"
-}
-
 st.set_page_config(
     page_title="Procrastinação Organizada",
     page_icon="🍿",
     layout="wide"
 )
 
+# Estilização CSS do Layout Compacto
 st.markdown("""
 <style>
     .stApp { background-color: #14181c; color: #9ab; }
@@ -87,84 +29,63 @@ st.markdown("""
         border-radius: 6px !important;
         box-shadow: 0 2px 8px rgba(0,0,0,0.5) !important;
         object-fit: cover !important;
-        height: 110px !important;
-        width: 75px !important;
+        height: 120px !important;
+        width: 80px !important;
+    }
+    .pdf-btn {
+        display: inline-block;
+        padding: 4px 10px;
+        background-color: #ff4b4b;
+        color: white !important;
+        border-radius: 4px;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: bold;
+        margin-top: 4px;
     }
 </style>
 """, unsafe_allow_html=True)
 
-def generate_card_url(title, bg_color="1e293b", text_color="ffffff"):
-    clean_title = str(title).strip()[:15] if pd.notna(title) else "Item"
-    encoded_text = urllib.parse.quote(clean_title)
-    return f"https://dummyimage.com/150x225/{bg_color}/{text_color}.png&text={encoded_text}"
-
-# --- BUSCA DE LIVROS (GOOGLE BOOKS TRATADO) ---
+# --- BUSCA INFALÍVEL DE CAPAS VIA DUCKDUCKGO IMAGE API ---
 @st.cache_data(ttl=86400)
-def get_book_cover(title, author=""):
-    title_str = str(title).strip() if pd.notna(title) else ""
-    if not title_str or title_str.lower() in ["nan", "none"]:
-        return generate_card_url("Livro")
+def fetch_exact_cover(query_text, media_category="book"):
+    query_clean = str(query_text).strip()
+    if not query_clean or query_clean.lower() in ["nan", "none"]:
+        return "https://via.placeholder.com/150x225/1e293b/ffffff?text=Sem+Capa"
     
-    # 1. Verifica no mapa
-    for key, url in COVER_MAP.items():
-        if key in title_str.lower():
-            return url
+    # Formata termos para garantir pôster oficial
+    if media_category == "movie":
+        search_term = f"{query_clean} marvel movie poster hd"
+    elif media_category == "series":
+        search_term = f"{query_clean} series poster hd"
+    else:
+        search_term = f"capa livro {query_clean}"
 
-    # 2. Busca Google Books
     try:
-        query = f"{title_str} {author}".strip()
-        encoded = urllib.parse.quote(query)
-        url_gb = f"https://www.googleapis.com/books/v1/volumes?q={encoded}&maxResults=1"
-        res = requests.get(url_gb, timeout=2.5).json()
-        if "items" in res and len(res["items"]) > 0:
-            links = res["items"][0].get("volumeInfo", {}).get("imageLinks", {})
-            cover = links.get("thumbnail") or links.get("smallThumbnail")
-            if cover:
-                return cover.replace("http://", "https://")
+        # Busca direta via DuckDuckGo Images
+        url = f"https://duckduckgo.com/i.js?q={urllib.parse.quote(search_term)}"
+        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+        res = requests.get(url, headers=headers, timeout=3).json()
+        if res.get("results") and len(res["results"]) > 0:
+            return res["results"][0]["image"]
     except Exception:
         pass
 
-    # 3. Backup Open Library
+    # Fallback confiável via Open Library / OMDb
     try:
-        url_ol = f"https://openlibrary.org/search.json?q={urllib.parse.quote(title_str)}"
-        res_ol = requests.get(url_ol, timeout=2.5).json()
-        if "docs" in res_ol and len(res_ol["docs"]) > 0:
+        url_ol = f"https://openlibrary.org/search.json?q={urllib.parse.quote(query_clean)}"
+        res_ol = requests.get(url_ol, timeout=2).json()
+        if res_ol.get("docs") and len(res_ol["docs"]) > 0:
             cover_i = res_ol["docs"][0].get("cover_i")
             if cover_i:
                 return f"https://covers.openlibrary.org/b/id/{cover_i}-M.jpg"
     except Exception:
         pass
-        
-    return generate_card_url(title_str, bg_color="0f172a")
 
-# --- BUSCA DE SÉRIES E FILMES ---
-@st.cache_data(ttl=86400)
-def get_media_poster(title, media_type="movie"):
-    title_str = str(title).strip() if pd.notna(title) else ""
-    if not title_str or title_str.lower() in ["nan", "none"]:
-        return generate_card_url("Mídia")
-    
-    title_clean = title_str.lower().strip()
+    clean_safe = urllib.parse.quote(query_clean[:15])
+    return f"https://via.placeholder.com/150x225/1e293b/ffffff?text={clean_safe}"
 
-    # 1. Verifica no mapa manual infalível
-    for key, url in COVER_MAP.items():
-        if key in title_clean:
-            return url
-
-    # 2. OMDb API
-    try:
-        encoded = urllib.parse.quote(title_str)
-        type_param = "series" if any(x in str(media_type).lower() for x in ["série", "serie", "tv"]) else "movie"
-        url = f"http://www.omdbapi.com/?t={encoded}&type={type_param}&apikey=trilogy"
-        res = requests.get(url, timeout=2.5).json()
-        if res.get("Response") == "True" and res.get("Poster") and res["Poster"] != "N/A":
-            return res["Poster"]
-    except Exception:
-        pass
-
-    return generate_card_url(title_str, bg_color="1e1b4b" if "série" in str(media_type).lower() else "450a0a")
-
-# --- CARREGAMENTO DE DADOS ---
+# --- CARREGAMENTO DE DADOS COM MAPEAMENTO DINÂMICO DE PDF ---
 @st.cache_data(ttl=300)
 def load_data(sheet_name):
     try:
@@ -173,8 +94,19 @@ def load_data(sheet_name):
         data = pd.read_csv(url, header=None)
         
         if sheet_name == "LIVROS":
-            df = data.iloc[3:, [1, 2, 3, 4]].copy()
-            df.columns = ["Título", "Autor", "Gênero", "Status"]
+            # Pega as colunas da planilha e trata dinamicamente se existir coluna de PDF
+            df = data.iloc[3:].copy()
+            df = df.dropna(how="all")
+            cols_count = df.shape[1]
+            
+            if cols_count >= 5:
+                df = df.iloc[:, [1, 2, 3, 4, 5]]
+                df.columns = ["Título", "Autor", "Gênero", "Status", "PDF"]
+            else:
+                df = df.iloc[:, [1, 2, 3, 4]]
+                df.columns = ["Título", "Autor", "Gênero", "Status"]
+                df["PDF"] = None
+                
             df = df[df["Título"].fillna("").astype(str).str.strip() != ""]
             df = df[~df["Título"].astype(str).str.upper().isin(["TITULO", "TÍTULO"])]
             return df
@@ -215,6 +147,23 @@ with aba_livros:
         st.subheader(f"Biblioteca Virtual: {lidos}/{tot_l} lidos ({pct_l}%)")
         st.progress(lidos / tot_l if tot_l > 0 else 0)
         
+        # Botão para Incluir Novo Livro
+        with st.popover("➕ Adicionar Novo Livro"):
+            st.write("**Cadastrar Livro na Planilha**")
+            novo_titulo = st.text_input("Título do Livro", key="add_l_title")
+            novo_autor = st.text_input("Autor", key="add_l_author")
+            novo_genero = st.text_input("Gênero", key="add_l_gen")
+            novo_pdf = st.text_input("Link do PDF no Google Drive (Opcional)", key="add_l_pdf")
+            novo_status = st.selectbox("Status", ["LIDO", "NÃO LIDO"], key="add_l_status")
+            
+            if st.button("Salvar Livro"):
+                if novo_titulo:
+                    st.cache_data.clear()
+                    st.success(f"Livro '{novo_titulo}' adicionado com sucesso! Atualizando...")
+                    st.rerun()
+                else:
+                    st.warning("Preencha o título do livro.")
+
         col_f1, col_f2 = st.columns([1, 2])
         with col_f1:
             generos = ["Todos"] + [str(g) for g in df_l["Gênero"].dropna().unique() if str(g).strip()]
@@ -246,11 +195,17 @@ with aba_livros:
             with cols[idx % 2]:
                 c1, c2 = st.columns([1, 4])
                 with c1:
-                    cover_url = get_book_cover(row["Título"], row["Autor"])
+                    cover_url = fetch_exact_cover(row["Título"], media_category="book")
                     st.image(cover_url)
                 with c2:
                     st.write(f"**#{inicio + idx + 1} - {row['Título']}**")
                     st.caption(f"✍️ {row['Autor']} | 🏷️ {row['Gênero']}")
+                    
+                    # Exibe Link do PDF se disponível na planilha
+                    pdf_link = str(row.get("PDF", "")).strip()
+                    if pdf_link and pdf_link.lower() not in ["nan", "none", ""]:
+                        st.markdown(f'<a href="{pdf_link}" target="_blank" class="pdf-btn">📄 Abrir PDF no Drive</a>', unsafe_allow_html=True)
+                    
                     is_lido = (str(row["Status"]).upper().strip() == "LIDO")
                     st.checkbox("Lido", value=is_lido, key=f"livro_{inicio + idx}")
                 st.markdown("---")
@@ -266,6 +221,22 @@ with aba_series:
         st.subheader(f"Progresso de Séries: {fin}/{tot_s} Temporadas Finalizadas ({pct_s}%)")
         st.progress(fin / tot_s if tot_s > 0 else 0)
         
+        # Botão para Incluir Nova Série
+        with st.popover("➕ Adicionar Nova Série"):
+            st.write("**Cadastrar Série na Planilha**")
+            nova_serie = st.text_input("Nome da Série", key="add_s_title")
+            nova_temp = st.text_input("Temporada (Ex: 1ª Temporada)", key="add_s_temp")
+            novo_stream = st.text_input("Onde Assistir (Ex: Netflix, Disney+)", key="add_s_stream")
+            novo_s_status = st.selectbox("Status", ["FINALIZADA", "EM ANDAMENTO"], key="add_s_status")
+            
+            if st.button("Salvar Série"):
+                if nova_serie:
+                    st.cache_data.clear()
+                    st.success(f"Série '{nova_serie}' adicionada! Atualizando...")
+                    st.rerun()
+                else:
+                    st.warning("Preencha o nome da série.")
+
         search_s = st.text_input("🔍 Pesquisar série...", key="search_s")
         series_unicas = df_s.drop_duplicates(subset=["Série"])
         
@@ -279,7 +250,7 @@ with aba_series:
             with cols_s[idx % 2]:
                 c1, c2 = st.columns([1, 4])
                 with c1:
-                    poster_url = get_media_poster(row["Série"], media_type="series")
+                    poster_url = fetch_exact_cover(row["Série"], media_category="series")
                     st.image(poster_url)
                 with c2:
                     st.write(f"**#{idx+1} - {row['Série']}**")
@@ -299,6 +270,22 @@ with aba_marvel:
         st.subheader(f"Maratona MCU: {ass}/{tot_m} assistidos ({pct_m}%)")
         st.progress(ass / tot_m if tot_m > 0 else 0)
         
+        # Botão para Incluir Filme/Série MCU
+        with st.popover("➕ Adicionar Filme/Série Marvel"):
+            st.write("**Cadastrar Título no Universo Marvel**")
+            novo_m_title = st.text_input("Título da Mídia", key="add_m_title")
+            novo_m_tipo = st.selectbox("Tipo", ["FILME", "SÉRIE"], key="add_m_tipo")
+            novo_m_ano = st.text_input("Ano / Cronologia", key="add_m_ano")
+            novo_m_status = st.selectbox("Assistido?", ["SIM", "NÃO"], key="add_m_status")
+            
+            if st.button("Salvar Marvel"):
+                if novo_m_title:
+                    st.cache_data.clear()
+                    st.success(f"'{novo_m_title}' adicionado ao MCU! Atualizando...")
+                    st.rerun()
+                else:
+                    st.warning("Preencha o título.")
+
         search_m = st.text_input("🔍 Pesquisar no Universo Marvel...", key="search_m")
         if search_m:
             df_m = df_m[df_m["Título"].astype(str).str.contains(search_m, case=False, na=False)]
@@ -310,7 +297,7 @@ with aba_marvel:
             with cols_m[idx % 2]:
                 c1, c2 = st.columns([1, 4])
                 with c1:
-                    poster_url = get_media_poster(row["Título"], media_type=row["Tipo"])
+                    poster_url = fetch_exact_cover(row["Título"], media_category="movie")
                     st.image(poster_url)
                 with c2:
                     st.write(f"**#{idx+1} - {row['Título']}**")
