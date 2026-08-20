@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import requests
 import urllib.parse
 import re
 
@@ -13,38 +12,13 @@ GIDS = {
     "UNIVERSO MARVEL": "1360927897"
 }
 
-# MAPA FIXO DE CAPAS OFICIAIS (CDN PÚBLICA AMAZON/IMDB - NUNCA BLOQUEIA)
-POSTER_MAP = {
-    # Séries
-    "station 19": "https://m.media-amazon.com/images/M/MV5BMjA3NjYzMzE1MV5BMl5BanBnXkFtZTgwNTA4NDY4NzM@._V1_SX300.jpg",
-    "cavaleiro da lua": "https://m.media-amazon.com/images/M/MV5BYTc5OWU4ZjktM2M0Ni00N2JhLWE3ZjAtMTBrNWQ01mEwX123XkFtZTgw._V1_SX300.jpg",
-    "olhos que condenam": "https://m.media-amazon.com/images/M/MV5BMjA3NjYzMzE1MV5BMl5BanBnXkFtZTgwNTA4NDY4NzM@._V1_SX300.jpg",
-    "she-ra": "https://m.media-amazon.com/images/M/MV5BNzA2MjA1NzA0N15BMl5BanBnXkFtZTgwOTM5NDY4NzM@._V1_SX300.jpg",
-    "she-ra: e as princesas do poder": "https://m.media-amazon.com/images/M/MV5BNzA2MjA1NzA0N15BMl5BanBnXkFtZTgwOTM5NDY4NzM@._V1_SX300.jpg",
-    "gavião arqueiro": "https://m.media-amazon.com/images/M/MV5BZGEzMDJjN2EtYTZiZS00M2I2LTk2ZjktNTlmOThjZTI3MGJiXkFtZTgw._V1_SX300.jpg",
-    "round 6": "https://m.media-amazon.com/images/M/MV5BYWE3MDVkN2EtNjQ5MS00ZDQ4LTliNzYtMjc2YWMzMDg1ODE3XkFtZTgw._V1_SX300.jpg",
-    "falcão e o soldado invernal": "https://m.media-amazon.com/images/M/MV5BMyNmYzA3Y2EtMWE4OS00NGJiLTk0NmMtYTI5NjA0YjM2N2M2XkFtZTgw._V1_SX300.jpg",
-    "marvel studios: legends": "https://m.media-amazon.com/images/M/MV5BMjA3NjYzMzE1MV5BMl5BanBnXkFtZTgwNTA4NDY4NzM@._V1_SX300.jpg",
-    "legends": "https://m.media-amazon.com/images/M/MV5BMjA3NjYzMzE1MV5BMl5BanBnXkFtZTgwNTA4NDY4NzM@._V1_SX300.jpg",
-    
-    # Universo Marvel Títulos Principais
-    "capitão américa: o primeiro vingador": "https://m.media-amazon.com/images/M/MV5BMTYzOTc2Njg1N15BMl5BanBnXkFtZTcwZDkzNjU1MQ@@._V1_SX300.jpg",
-    "agente carter": "https://m.media-amazon.com/images/M/MV5BMTY3NjE2MTgwMl5BMl5BanBnXkFtZTgwNTU3NTM3MjE@._V1_SX300.jpg",
-    "capitã marvel": "https://m.media-amazon.com/images/M/MV5BMTE0YWFmOTMtMDkyYi00N2IzLWE0M2ItNDYyN2JkZGM0M2E0XkFtZTgwMjQwMzczNTM@._V1_SX300.jpg",
-    "homem de ferro": "https://m.media-amazon.com/images/M/MV5BMTczNTI2ODUwOF5BMl5BanBnXkFtZTcwMTU0NTIzMw@@._V1_SX300.jpg",
-    "homem de ferro 2": "https://m.media-amazon.com/images/M/MV5BMTM0MDgwNjMyMl5BMl5BanBnXkFtZTcwNTg3NzAzMw@@._V1_SX300.jpg",
-    "o incrível hulk": "https://m.media-amazon.com/images/M/MV5BMTUyNzk3MjA1OF5BMl5BanBnXkFtZTcwMTE1Njg2MQ@@._V1_SX300.jpg",
-    "os vingadores": "https://m.media-amazon.com/images/M/MV5BNDYyNjA3Mzg5MV5BMl5BanBnXkFtZTgwMDUyNTkwNzE@._V1_SX300.jpg",
-    "pantera negra": "https://m.media-amazon.com/images/M/MV5BMTg1MTY2MjYzNV5BMl5BanBnXkFtZTgwMTc4NTMwNDI@._V1_SX300.jpg",
-    "pantera negra: wakanda para sempre": "https://m.media-amazon.com/images/M/MV5BNTM4NjIxNmEtYWE5NS00NDczLTkyNWQtYThhNmQyZGQzMjM0XkFtZTgwNDM2NzM2MTI@._V1_SX300.jpg"
-}
-
 st.set_page_config(
     page_title="Procrastinação Organizada",
     page_icon="🍿",
     layout="wide"
 )
 
+# Estilização CSS do Layout Compacto
 st.markdown("""
 <style>
     .stApp { background-color: #14181c; color: #9ab; }
@@ -60,125 +34,35 @@ st.markdown("""
     }
     .pdf-btn {
         display: inline-block;
-        padding: 4px 10px;
+        padding: 6px 12px;
         background-color: #ff4b4b;
         color: white !important;
         border-radius: 4px;
         text-decoration: none;
-        font-size: 12px;
+        font-size: 13px;
         font-weight: bold;
-        margin-top: 4px;
+        margin-top: 6px;
+        margin-bottom: 6px;
+    }
+    .pdf-btn:hover {
+        background-color: #e03e3e;
     }
 </style>
 """, unsafe_allow_html=True)
 
-def generate_fallback_card(text):
+def generate_fallback_card(text, bg="1e293b"):
     clean_title = re.sub(r'[^\w\s]', '', str(text)).strip()[:15]
     encoded = urllib.parse.quote(clean_title if clean_title else "Item")
-    return f"https://dummyimage.com/150x225/1e293b/ffffff.png&text={encoded}"
-
-# --- BUSCA OTIMIZADA DE LIVROS ---
-@st.cache_data(ttl=86400)
-def get_book_cover(title, author=""):
-    title_clean = str(title).strip() if pd.notna(title) else ""
-    if not title_clean or title_clean.lower() in ["nan", "none"]:
-        return generate_fallback_card("Livro")
-    
-    # Check no mapa fixo
-    for k, v in POSTER_MAP.items():
-        if k in title_clean.lower():
-            return v
-
-    # Google Books API
-    try:
-        query = f"intitle:{title_clean}".strip()
-        url = f"https://www.googleapis.com/books/v1/volumes?q={urllib.parse.quote(query)}&maxResults=1"
-        res = requests.get(url, timeout=2.5).json()
-        if "items" in res and len(res["items"]) > 0:
-            links = res["items"][0].get("volumeInfo", {}).get("imageLinks", {})
-            cover = links.get("thumbnail") or links.get("smallThumbnail")
-            if cover:
-                return cover.replace("http://", "https://")
-    except Exception:
-        pass
-
-    # Open Library API
-    try:
-        url_ol = f"https://openlibrary.org/search.json?title={urllib.parse.quote(title_clean)}"
-        res_ol = requests.get(url_ol, timeout=2.5).json()
-        if res_ol.get("docs") and len(res_ol["docs"]) > 0:
-            cover_i = res_ol["docs"][0].get("cover_i")
-            if cover_i:
-                return f"https://covers.openlibrary.org/b/id/{cover_i}-M.jpg"
-    except Exception:
-        pass
-
-    return generate_fallback_card(title_clean)
-
-# --- BUSCA OTIMIZADA DE SÉRIES E MARVEL ---
-@st.cache_data(ttl=86400)
-def get_media_poster(title, media_type="movie"):
-    title_clean = str(title).strip() if pd.notna(title) else ""
-    if not title_clean or title_clean.lower() in ["nan", "none"]:
-        return generate_fallback_card("Mídia")
-
-    title_lower = title_clean.lower().replace("**", "").strip()
-
-    # 1. Busca no mapa manual fixo
-    for k, v in POSTER_MAP.items():
-        if k in title_lower:
-            return v
-
-    # 2. OMDb API
-    try:
-        type_param = "series" if any(x in str(media_type).lower() for x in ["série", "serie", "tv"]) else "movie"
-        url = f"http://www.omdbapi.com/?t={urllib.parse.quote(title_clean)}&type={type_param}&apikey=trilogy"
-        res = requests.get(url, timeout=2.5).json()
-        if res.get("Response") == "True" and res.get("Poster") and res["Poster"] != "N/A":
-            return res["Poster"]
-    except Exception:
-        pass
-
-    return generate_fallback_card(title_clean)
+    return f"https://dummyimage.com/150x225/{bg}/ffffff.png&text={encoded}"
 
 # --- CARREGAMENTO DE DADOS ---
-@st.cache_data(ttl=300)
+@st.cache_data(ttl=60)
 def load_data(sheet_name):
     try:
         gid = GIDS.get(sheet_name, "0")
         url = f"https://docs.google.com/spreadsheets/d/{DOC_ID}/export?format=csv&gid={gid}"
-        data = pd.read_csv(url, header=None)
-        
-        if sheet_name == "LIVROS":
-            df = data.iloc[3:].copy().dropna(how="all")
-            cols_count = df.shape[1]
-            if cols_count >= 5:
-                df = df.iloc[:, [1, 2, 3, 4, 5]]
-                df.columns = ["Título", "Autor", "Gênero", "Status", "PDF"]
-            else:
-                df = df.iloc[:, [1, 2, 3, 4]]
-                df.columns = ["Título", "Autor", "Gênero", "Status"]
-                df["PDF"] = None
-                
-            df = df[df["Título"].fillna("").astype(str).str.strip() != ""]
-            df = df[~df["Título"].astype(str).str.upper().isin(["TITULO", "TÍTULO"])]
-            return df
-
-        elif sheet_name == "SÉRIES":
-            df = data.iloc[3:, [0, 1, 2, 3]].copy()
-            df.columns = ["Série", "Temporada", "Streaming", "Status"]
-            df["Série"] = df["Série"].replace("", None).ffill()
-            df = df[df["Série"].fillna("").astype(str).str.strip() != ""]
-            df = df[~df["Série"].astype(str).str.upper().isin(["SÉRIIE", "SÉRIE", "SERIE"])]
-            return df
-
-        elif sheet_name == "UNIVERSO MARVEL":
-            df = data.iloc[4:, [0, 1, 2, 3]].copy()
-            df.columns = ["Título", "Tipo", "Ano", "Status"]
-            df = df[df["Título"].fillna("").astype(str).str.strip() != ""]
-            df = df[~df["Título"].astype(str).str.upper().isin(["TITULO", "TÍTULO"])]
-            return df
-
+        df = pd.read_csv(url, header=None)
+        return df
     except Exception as e:
         st.error(f"Erro ao carregar {sheet_name}: {e}")
         return pd.DataFrame()
@@ -191,29 +75,24 @@ aba_livros, aba_series, aba_marvel = st.tabs(["📚 Biblioteca Virtual", "📺 T
 
 # 1. BIBLIOTECA VIRTUAL (LIVROS)
 with aba_livros:
-    df_l = load_data("LIVROS")
-    if not df_l.empty:
+    data_l = load_data("LIVROS")
+    if not data_l.empty:
+        df_l = data_l.iloc[3:].copy().dropna(how="all")
+        
+        # Mapeamento de colunas padrão da aba Livros
+        # Coluna 1: Título | Coluna 2: Autor | Coluna 3: Gênero | Coluna 4: Status | Coluna 5 (Capa): Link do PDF
+        df_l.columns = ["Index", "Título", "Autor", "Gênero", "Status", "Capa"] + list(df_l.columns[6:])
+        df_l = df_l[df_l["Título"].fillna("").astype(str).str.strip() != ""]
+        df_l = df_l[~df_l["Título"].astype(str).str.upper().isin(["TITULO", "TÍTULO"])]
+
         lidos = len(df_l[df_l["Status"].astype(str).str.upper().str.strip() == "LIDO"])
         tot_l = len(df_l)
         pct_l = int((lidos / tot_l) * 100) if tot_l > 0 else 0
         
         st.subheader(f"Biblioteca Virtual: {lidos}/{tot_l} lidos ({pct_l}%)")
         st.progress(lidos / tot_l if tot_l > 0 else 0)
-        
-        with st.popover("➕ Adicionar Novo Livro"):
-            st.write("**Cadastrar Livro**")
-            novo_titulo = st.text_input("Título do Livro", key="add_l_title")
-            novo_autor = st.text_input("Autor", key="add_l_author")
-            novo_genero = st.text_input("Gênero", key="add_l_gen")
-            novo_pdf = st.text_input("Link do PDF no Google Drive", key="add_l_pdf")
-            novo_status = st.selectbox("Status", ["LIDO", "NÃO LIDO"], key="add_l_status")
-            
-            if st.button("Salvar Livro"):
-                if novo_titulo:
-                    st.cache_data.clear()
-                    st.success(f"Livro '{novo_titulo}' adicionado!")
-                    st.rerun()
 
+        # Filtros e Pesquisa
         col_f1, col_f2 = st.columns([1, 2])
         with col_f1:
             generos = ["Todos"] + [str(g) for g in df_l["Gênero"].dropna().unique() if str(g).strip()]
@@ -226,6 +105,7 @@ with aba_livros:
         if search_l:
             df_l = df_l[df_l["Título"].astype(str).str.contains(search_l, case=False, na=False)]
 
+        # Paginação
         itens_por_pagina = 20
         total_paginas = (len(df_l) - 1) // itens_por_pagina + 1 if len(df_l) > 0 else 1
         
@@ -244,25 +124,39 @@ with aba_livros:
         for idx, (_, row) in enumerate(df_pagina.iterrows()):
             with cols[idx % 2]:
                 c1, c2 = st.columns([1, 4])
+                
+                # Trata link da Coluna Capa (PDF do Drive)
+                capa_val = str(row.get("Capa", "")).strip()
+                is_pdf_link = any(k in capa_val.lower() for k in ["drive.google.com", "docs.google.com", ".pdf", "http"])
+                
                 with c1:
-                    cover_url = get_book_cover(row["Título"], row["Autor"])
-                    st.image(cover_url)
+                    # Exibe imagem promocional ou card estilizado
+                    cover_img = generate_fallback_card(row["Título"], bg="0f172a")
+                    st.image(cover_img)
                 with c2:
                     st.write(f"**#{inicio + idx + 1} - {row['Título']}**")
                     st.caption(f"✍️ {row['Autor']} | 🏷️ {row['Gênero']}")
                     
-                    pdf_link = str(row.get("PDF", "")).strip()
-                    if pdf_link and pdf_link.lower() not in ["nan", "none", ""]:
-                        st.markdown(f'<a href="{pdf_link}" target="_blank" class="pdf-btn">📄 Abrir PDF no Drive</a>', unsafe_allow_html=True)
-                    
+                    # Botão Direto para o PDF do Google Drive
+                    if is_pdf_link:
+                        st.markdown(f'<a href="{capa_val}" target="_blank" class="pdf-btn">📄 Abrir PDF no Drive</a>', unsafe_allow_html=True)
+                    else:
+                        st.caption("📄 PDF não disponível")
+
                     is_lido = (str(row["Status"]).upper().strip() == "LIDO")
                     st.checkbox("Lido", value=is_lido, key=f"livro_{inicio + idx}")
                 st.markdown("---")
 
 # 2. TRACKER DE SÉRIES
 with aba_series:
-    df_s = load_data("SÉRIES")
-    if not df_s.empty:
+    data_s = load_data("SÉRIES")
+    if not data_s.empty:
+        df_s = data_s.iloc[3:, [0, 1, 2, 3]].copy()
+        df_s.columns = ["Série", "Temporada", "Streaming", "Status"]
+        df_s["Série"] = df_s["Série"].replace("", None).ffill()
+        df_s = df_s[df_s["Série"].fillna("").astype(str).str.strip() != ""]
+        df_s = df_s[~df_s["Série"].astype(str).str.upper().isin(["SÉRIIE", "SÉRIE", "SERIE"])]
+
         fin = len(df_s[df_s["Status"].astype(str).str.upper().str.strip() == "FINALIZADA"])
         tot_s = len(df_s)
         pct_s = int((fin / tot_s) * 100) if tot_s > 0 else 0
@@ -270,19 +164,6 @@ with aba_series:
         st.subheader(f"Progresso de Séries: {fin}/{tot_s} Temporadas Finalizadas ({pct_s}%)")
         st.progress(fin / tot_s if tot_s > 0 else 0)
         
-        with st.popover("➕ Adicionar Nova Série"):
-            st.write("**Cadastrar Série**")
-            nova_serie = st.text_input("Nome da Série", key="add_s_title")
-            nova_temp = st.text_input("Temporada", key="add_s_temp")
-            novo_stream = st.text_input("Streaming", key="add_s_stream")
-            novo_s_status = st.selectbox("Status", ["FINALIZADA", "EM ANDAMENTO"], key="add_s_status")
-            
-            if st.button("Salvar Série"):
-                if nova_serie:
-                    st.cache_data.clear()
-                    st.success(f"Série '{nova_serie}' adicionada!")
-                    st.rerun()
-
         search_s = st.text_input("🔍 Pesquisar série...", key="search_s")
         series_unicas = df_s.drop_duplicates(subset=["Série"])
         
@@ -296,11 +177,10 @@ with aba_series:
             with cols_s[idx % 2]:
                 c1, c2 = st.columns([1, 4])
                 with c1:
-                    poster_url = get_media_poster(row["Série"], media_type="series")
+                    poster_url = generate_fallback_card(row["Série"], bg="1e1b4b")
                     st.image(poster_url)
                 with c2:
-                    clean_title = str(row['Série']).replace("**", "").strip()
-                    st.write(f"**#{idx+1} - {clean_title}**")
+                    st.write(f"**#{idx+1} - {row['Série']}**")
                     st.caption(f"📺 {row['Temporada']} | 🍿 {row['Streaming']}")
                     is_finalizada = (str(row["Status"]).upper().strip() == "FINALIZADA")
                     st.checkbox("Finalizada", value=is_finalizada, key=f"serie_{idx}")
@@ -308,8 +188,13 @@ with aba_series:
 
 # 3. UNIVERSO MARVEL
 with aba_marvel:
-    df_m = load_data("UNIVERSO MARVEL")
-    if not df_m.empty:
+    data_m = load_data("UNIVERSO MARVEL")
+    if not data_m.empty:
+        df_m = data_m.iloc[4:, [0, 1, 2, 3]].copy()
+        df_m.columns = ["Título", "Tipo", "Ano", "Status"]
+        df_m = df_m[df_m["Título"].fillna("").astype(str).str.strip() != ""]
+        df_m = df_m[~df_m["Título"].astype(str).str.upper().isin(["TITULO", "TÍTULO"])]
+
         ass = len(df_m[df_m["Status"].astype(str).str.upper().str.strip() == "SIM"])
         tot_m = len(df_m)
         pct_m = int((ass / tot_m) * 100) if tot_m > 0 else 0
@@ -317,19 +202,6 @@ with aba_marvel:
         st.subheader(f"Maratona MCU: {ass}/{tot_m} assistidos ({pct_m}%)")
         st.progress(ass / tot_m if tot_m > 0 else 0)
         
-        with st.popover("➕ Adicionar Filme/Série Marvel"):
-            st.write("**Cadastrar Marvel**")
-            novo_m_title = st.text_input("Título", key="add_m_title")
-            novo_m_tipo = st.selectbox("Tipo", ["FILME", "SÉRIE"], key="add_m_tipo")
-            novo_m_ano = st.text_input("Ano / Período", key="add_m_ano")
-            novo_m_status = st.selectbox("Assistido?", ["SIM", "NÃO"], key="add_m_status")
-            
-            if st.button("Salvar Marvel"):
-                if novo_m_title:
-                    st.cache_data.clear()
-                    st.success(f"'{novo_m_title}' adicionado ao MCU!")
-                    st.rerun()
-
         search_m = st.text_input("🔍 Pesquisar no Universo Marvel...", key="search_m")
         if search_m:
             df_m = df_m[df_m["Título"].astype(str).str.contains(search_m, case=False, na=False)]
@@ -341,11 +213,10 @@ with aba_marvel:
             with cols_m[idx % 2]:
                 c1, c2 = st.columns([1, 4])
                 with c1:
-                    poster_url = get_media_poster(row["Título"], media_type=row["Tipo"])
+                    poster_url = generate_fallback_card(row["Título"], bg="450a0a")
                     st.image(poster_url)
                 with c2:
-                    clean_m_title = str(row['Título']).replace("**", "").strip()
-                    st.write(f"**#{idx+1} - {clean_m_title}**")
+                    st.write(f"**#{idx+1} - {row['Título']}**")
                     st.caption(f"🎬 {row['Tipo']} | 📅 {row['Ano']}")
                     is_checked = (str(row["Status"]).upper().strip() == "SIM")
                     st.checkbox("Assistido", value=is_checked, key=f"mcu_{idx}")
