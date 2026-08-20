@@ -10,7 +10,8 @@ DOC_ID = "1Dq9BXjt9tbsdFQryC3NBYJTXvhHjZbtEGdG_ZXpWdp0"
 GIDS = {
     "LIVROS": "1591861167",
     "SÉRIES": "1513581778",
-    "UNIVERSO MARVEL": "1360927897"
+    "UNIVERSO MARVEL": "1360927897",
+    "CAPAS_E_PDFS": "982379910"
 }
 
 st.set_page_config(
@@ -42,22 +43,6 @@ st.markdown("""
         width: 85px !important;
     }
 
-    .pdf-btn {
-        display: inline-block;
-        padding: 4px 8px;
-        background-color: #ef4444;
-        color: #ffffff !important;
-        border-radius: 4px;
-        text-decoration: none;
-        font-size: 11px;
-        font-weight: 600;
-        margin-top: 4px;
-        margin-bottom: 4px;
-    }
-    .pdf-btn:hover {
-        background-color: #dc2626;
-    }
-
     div[data-testid="stTextInput"] {
         max-width: 320px !important;
     }
@@ -75,41 +60,8 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# BUSCADOR OTIMIZADO DE CAPAS EM NUVEM
-@st.cache_data(ttl=86400)
-def fetch_online_poster(title_text):
-    clean_title = re.sub(r'[^\w\s]', '', str(title_text)).replace("**", "").strip()
-    if not clean_title or clean_title.lower() in ["nan", "none"]:
-        return "https://via.placeholder.com/150x225/f1f5f9/475569?text=Sem+Capa"
-
-    # 1. Google Books API
-    try:
-        url_gb = f"https://www.googleapis.com/books/v1/volumes?q={urllib.parse.quote(clean_title)}&maxResults=1"
-        res_gb = requests.get(url_gb, timeout=2.5).json()
-        if "items" in res_gb and len(res_gb["items"]) > 0:
-            links = res_gb["items"][0].get("volumeInfo", {}).get("imageLinks", {})
-            cover = links.get("thumbnail") or links.get("smallThumbnail")
-            if cover:
-                return cover.replace("http://", "https://")
-    except Exception:
-        pass
-
-    # 2. Open Library API
-    try:
-        url_ol = f"https://openlibrary.org/search.json?title={urllib.parse.quote(clean_title)}"
-        res_ol = requests.get(url_ol, timeout=2.5).json()
-        if res_ol.get("docs") and len(res_ol["docs"]) > 0:
-            cover_i = res_ol["docs"][0].get("cover_i")
-            if cover_i:
-                return f"https://covers.openlibrary.org/b/id/{cover_i}-M.jpg"
-    except Exception:
-        pass
-
-    encoded = urllib.parse.quote(clean_title[:15])
-    return f"https://via.placeholder.com/150x225/f1f5f9/475569?text={encoded}"
-
 # CARREGAMENTO DE DADOS DIRETO DA PLANILHA GOOGLE
-@st.cache_data(ttl=60)
+@st.cache_data(ttl=30)
 def load_data(sheet_name):
     try:
         gid = GIDS.get(sheet_name, "0")
@@ -120,9 +72,58 @@ def load_data(sheet_name):
         st.error(f"Erro ao carregar {sheet_name}: {e}")
         return pd.DataFrame()
 
+# BUSCA DE CAPAS E PDFS NA ABA AUXILIAR
+@st.cache_data(ttl=30)
+def load_auxiliary_map():
+    df_aux = load_data("CAPAS_E_PDFS")
+    aux_map = {}
+    if not df_aux.empty:
+        # Pega a partir da linha 2 (ignora cabeçalho "TITULO | CAPA | PDF")
+        df_clean = df_aux.iloc[1:].copy()
+        for _, row in df_clean.iterrows():
+            titulo = str(row[0]).strip().lower() if pd.notna(row[0]) else ""
+            capa = str(row[1]).strip() if pd.notna(row[1]) and len(row) > 1 else ""
+            pdf = str(row[2]).strip() if pd.notna(row[2]) and len(row) > 2 else ""
+            if titulo:
+                aux_map[titulo] = {"capa": capa, "pdf": pdf}
+    return aux_map
+
+# BUSCADOR FALLBACK DE CAPAS ONLINE
+@st.cache_data(ttl=86400)
+def fetch_online_poster(title_text):
+    clean_title = re.sub(r'[^\w\s]', '', str(title_text)).replace("**", "").strip()
+    if not clean_title or clean_title.lower() in ["nan", "none"]:
+        return "https://via.placeholder.com/150x225/f1f5f9/475569?text=Sem+Capa"
+
+    try:
+        url_gb = f"https://www.googleapis.com/books/v1/volumes?q={urllib.parse.quote(clean_title)}&maxResults=1"
+        res_gb = requests.get(url_gb, timeout=2).json()
+        if "items" in res_gb and len(res_gb["items"]) > 0:
+            links = res_gb["items"][0].get("volumeInfo", {}).get("imageLinks", {})
+            cover = links.get("thumbnail") or links.get("smallThumbnail")
+            if cover:
+                return cover.replace("http://", "https://")
+    except Exception:
+        pass
+
+    encoded = urllib.parse.quote(clean_title[:15])
+    return f"https://via.placeholder.com/150x225/f1f5f9/475569?text={encoded}"
+
+# HELPER: CONVERTE LINK DO GOOGLE DRIVE EM EMBED
+def get_drive_embed_url(url):
+    if "drive.google.com" in url:
+        # Extrai o ID do arquivo
+        match = re.search(r'/d/([a-zA-Z0-9_-]+)', url)
+        if match:
+            file_id = match.group(1)
+            return f"https://drive.google.com/file/d/{file_id}/preview"
+    return url
+
 # INTERFACE PRINCIPAL
 st.title("🍿 Procrastinação Organizada")
 st.caption("Seu Hub Pessoal de Entretenimento")
+
+aux_data = load_auxiliary_map()
 
 aba_livros, aba_series, aba_marvel = st.tabs(["📚 Biblioteca Virtual", "📺 Tracker de Séries", "🦸 Universo Marvel"])
 
@@ -131,21 +132,10 @@ with aba_livros:
     data_l = load_data("LIVROS")
     if not data_l.empty:
         df_l = data_l.iloc[3:].copy().dropna(how="all")
-        
-        # Estrutura Exata da Planilha Aba Livros:
-        # Coluna 0: Capa / PDF (Drive)
-        # Coluna 1: Título
-        # Coluna 2: Autor
-        # Coluna 3: Gênero
-        # Coluna 4: Status
         cols_count = df_l.shape[1]
         if cols_count >= 5:
-            df_l = df_l.iloc[:, [0, 1, 2, 3, 4]]
-        else:
-            df_l = df_l.iloc[:, [0, 1, 2, 3]]
-            df_l[4] = "NÃO LIDO"
-
-        df_l.columns = ["Link_Capa_PDF", "Título", "Autor", "Gênero", "Status"]
+            df_l = df_l.iloc[:, [1, 2, 3, 4]]
+        df_l.columns = ["Título", "Autor", "Gênero", "Status"]
         df_l = df_l[df_l["Título"].fillna("").astype(str).str.strip() != ""]
         df_l = df_l[~df_l["Título"].astype(str).str.upper().isin(["TITULO", "TÍTULO"])]
 
@@ -158,7 +148,6 @@ with aba_livros:
 
         with st.popover("➕ Adicionar Livro"):
             st.write("**Cadastrar Livro**")
-            novo_pdf = st.text_input("Link do PDF no Google Drive", key="add_l_pdf")
             novo_titulo = st.text_input("Título", key="add_l_title")
             novo_autor = st.text_input("Autor", key="add_l_author")
             novo_genero = st.text_input("Gênero", key="add_l_gen")
@@ -199,29 +188,34 @@ with aba_livros:
             with cols[idx % 2]:
                 c1, c2 = st.columns([1, 4])
                 
-                link_val = str(row.get("Link_Capa_PDF", "")).strip()
-                has_pdf_link = any(k in link_val.lower() for k in ["http", "drive.google.com", "docs.google.com", ".pdf"])
-                
+                titulo_clean = str(row["Título"]).strip().lower()
+                aux_info = aux_data.get(titulo_clean, {})
+                capa_url = aux_info.get("capa", "")
+                pdf_url = aux_info.get("pdf", "")
+
                 with c1:
-                    if has_pdf_link and any(ext in link_val.lower() for ext in [".jpg", ".png", ".jpeg", ".webp"]):
-                        img_url = link_val
+                    if capa_url and capa_url.startswith("http"):
+                        st.image(capa_url)
                     else:
-                        img_url = fetch_online_poster(row["Título"])
-                    st.image(img_url)
+                        img_fallback = fetch_online_poster(row["Título"])
+                        st.image(img_fallback)
                 with c2:
                     st.write(f"**#{inicio + idx + 1} - {row['Título']}**")
                     st.caption(f"✍️ {row['Autor']} | 🏷️ {row['Gênero']}")
                     
-                    if has_pdf_link:
-                        st.markdown(f'<a href="{link_val}" target="_blank" class="pdf-btn">📄 Abrir PDF no Drive</a>', unsafe_allow_html=True)
+                    # LEITOR EMBUTIDO (OPÇÃO B)
+                    if pdf_url and pdf_url.startswith("http"):
+                        embed_link = get_drive_embed_url(pdf_url)
+                        with st.expander("📖 Ler Livro"):
+                            st.components.v1.iframe(embed_link, height=450)
                     else:
-                        st.caption("📄 PDF não disponível")
+                        st.caption("📄 PDF não cadastrado")
 
                     is_lido = (str(row["Status"]).upper().strip() == "LIDO")
                     st.checkbox("Lido", value=is_lido, key=f"livro_{inicio + idx}")
                 st.markdown("---")
 
-# 2. TRACKER DE SÉRIES (AGRUPADO COM STATUS SINCRONIZADO POR TEMPORADA)
+# 2. TRACKER DE SÉRIES
 with aba_series:
     data_s = load_data("SÉRIES")
     if not data_s.empty:
@@ -250,7 +244,6 @@ with aba_series:
                 st.rerun()
 
         search_s = st.text_input("🔍 Pesquisar...", key="search_s")
-        
         if search_s:
             df_s = df_s[df_s["Série"].astype(str).str.contains(search_s, case=False, na=False)]
 
@@ -266,18 +259,24 @@ with aba_series:
             
             with cols_s[idx % 2]:
                 c1, c2 = st.columns([1, 4])
+                
+                s_key = clean_s_title.lower()
+                aux_info = aux_data.get(s_key, {})
+                capa_url = aux_info.get("capa", "")
+
                 with c1:
-                    poster_url = fetch_online_poster(clean_s_title)
-                    st.image(poster_url)
+                    if capa_url and capa_url.startswith("http"):
+                        st.image(capa_url)
+                    else:
+                        poster_url = fetch_online_poster(clean_s_title)
+                        st.image(poster_url)
                 with c2:
                     st.write(f"**#{idx+1} - {clean_s_title}**")
                     st.caption(f"🍿 {streaming_info}")
                     
-                    # Seleção de Temporadas
                     temp_opcoes = [str(t) for t in grupo["Temporada"].values]
                     temp_selecionada = st.selectbox("Temporada:", temp_opcoes, key=f"select_temp_{idx}")
                     
-                    # Filtra a temporada exata no dataframe
                     subset_temp = grupo[grupo["Temporada"].astype(str) == str(temp_selecionada)]
                     status_raw = str(subset_temp["Status"].iloc[0]).upper().strip() if not subset_temp.empty else "NÃO INICIADO"
                     
@@ -292,7 +291,6 @@ with aba_series:
                         
                     idx_radio = opcoes_status.index(mapped_status)
                     
-                    # O radio usa a combinação {idx}_{temp_selecionada} no key para alternar o estado dinamicamente ao trocar de temporada
                     st.radio(
                         "Status da Temporada:", 
                         opcoes_status, 
@@ -341,9 +339,17 @@ with aba_marvel:
             with cols_m[idx % 2]:
                 c1, c2 = st.columns([1, 4])
                 clean_m_title = str(row["Título"]).replace("**", "").strip()
+                
+                m_key = clean_m_title.lower()
+                aux_info = aux_data.get(m_key, {})
+                capa_url = aux_info.get("capa", "")
+
                 with c1:
-                    poster_url = fetch_online_poster(clean_m_title)
-                    st.image(poster_url)
+                    if capa_url and capa_url.startswith("http"):
+                        st.image(capa_url)
+                    else:
+                        poster_url = fetch_online_poster(clean_m_title)
+                        st.image(poster_url)
                 with c2:
                     st.write(f"**#{idx+1} - {clean_m_title}**")
                     st.caption(f"🎬 {row['Tipo']} | 📅 {row['Ano']}")
