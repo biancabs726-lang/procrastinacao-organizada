@@ -30,8 +30,8 @@ st.markdown("""
         border-radius: 6px !important;
         box-shadow: 0 2px 8px rgba(0,0,0,0.5) !important;
         object-fit: cover !important;
-        height: 120px !important;
-        width: 80px !important;
+        height: 130px !important;
+        width: 85px !important;
     }
     .pdf-btn {
         display: inline-block;
@@ -43,22 +43,27 @@ st.markdown("""
         font-size: 12px;
         font-weight: bold;
         margin-top: 4px;
-        margin-bottom: 4px;
+        margin-bottom: 6px;
     }
     .pdf-btn:hover {
         background-color: #e03e3e;
     }
+    .temp-item {
+        font-size: 13px;
+        color: #ccd;
+        margin-bottom: 2px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-# BUSCADOR AUTOMÁTICO DE CAPAS VIA GOOGLE BOOKS / OPEN LIBRARY
+# BUSCADOR DE CAPAS EM NUVEM
 @st.cache_data(ttl=86400)
 def fetch_online_poster(title_text):
     clean_title = re.sub(r'[^\w\s]', '', str(title_text)).replace("**", "").strip()
     if not clean_title or clean_title.lower() in ["nan", "none"]:
-        return "https://dummyimage.com/150x225/1e293b/ffffff.png&text=Sem+Capa"
+        return "https://via.placeholder.com/150x225/1e293b/ffffff?text=Sem+Capa"
 
-    # 1. Tenta Google Books API
+    # 1. Google Books API
     try:
         url_gb = f"https://www.googleapis.com/books/v1/volumes?q={urllib.parse.quote(clean_title)}&maxResults=1"
         res_gb = requests.get(url_gb, timeout=2).json()
@@ -70,7 +75,7 @@ def fetch_online_poster(title_text):
     except Exception:
         pass
 
-    # 2. Tenta Open Library API
+    # 2. Open Library API
     try:
         url_ol = f"https://openlibrary.org/search.json?title={urllib.parse.quote(clean_title)}"
         res_ol = requests.get(url_ol, timeout=2).json()
@@ -82,7 +87,7 @@ def fetch_online_poster(title_text):
         pass
 
     encoded = urllib.parse.quote(clean_title[:15])
-    return f"https://dummyimage.com/150x225/1e293b/ffffff.png&text={encoded}"
+    return f"https://via.placeholder.com/150x225/1e293b/ffffff?text={encoded}"
 
 # CARREGAMENTO DE DADOS
 @st.cache_data(ttl=60)
@@ -108,16 +113,15 @@ with aba_livros:
     if not data_l.empty:
         df_l = data_l.iloc[3:].copy().dropna(how="all")
         
-        # Mapeamento correto das colunas
+        # Mapeamento correto das colunas (Índice 1: Título, 2: Autor, 3: Gênero, 4: Status, 5: Capa/PDF)
         cols_count = df_l.shape[1]
-        if cols_count >= 5:
-            df_l = df_l.iloc[:, [1, 2, 3, 4, 4]] if cols_count == 5 else df_l.iloc[:, [1, 2, 3, 4, 5]]
-            df_l.columns = ["Título", "Autor", "Gênero", "Status", "Link_Capa_PDF"]
+        if cols_count >= 6:
+            df_l = df_l.iloc[:, [1, 2, 3, 4, 5]]
         else:
             df_l = df_l.iloc[:, [1, 2, 3, 4]]
-            df_l.columns = ["Título", "Autor", "Gênero", "Status"]
-            df_l["Link_Capa_PDF"] = ""
+            df_l[5] = ""
 
+        df_l.columns = ["Título", "Autor", "Gênero", "Status", "Link_Capa_PDF"]
         df_l = df_l[df_l["Título"].fillna("").astype(str).str.strip() != ""]
         df_l = df_l[~df_l["Título"].astype(str).str.upper().isin(["TITULO", "TÍTULO"])]
 
@@ -128,7 +132,6 @@ with aba_livros:
         st.subheader(f"Biblioteca Virtual: {lidos}/{tot_l} lidos ({pct_l}%)")
         st.progress(lidos / tot_l if tot_l > 0 else 0)
 
-        # Filtros
         col_f1, col_f2 = st.columns([1, 2])
         with col_f1:
             generos = ["Todos"] + [str(g) for g in df_l["Gênero"].dropna().unique() if str(g).strip()]
@@ -141,7 +144,6 @@ with aba_livros:
         if search_l:
             df_l = df_l[df_l["Título"].astype(str).str.contains(search_l, case=False, na=False)]
 
-        # Paginação
         itens_por_pagina = 20
         total_paginas = (len(df_l) - 1) // itens_por_pagina + 1 if len(df_l) > 0 else 1
         
@@ -165,7 +167,6 @@ with aba_livros:
                 has_pdf_link = any(k in link_val.lower() for k in ["http", "drive.google.com", "docs.google.com", ".pdf"])
                 
                 with c1:
-                    # Se houver link direto de imagem na planilha usa ele, senão busca capa online
                     if has_pdf_link and any(ext in link_val.lower() for ext in [".jpg", ".png", ".jpeg", "webp"]):
                         img_url = link_val
                     else:
@@ -184,7 +185,7 @@ with aba_livros:
                     st.checkbox("Lido", value=is_lido, key=f"livro_{inicio + idx}")
                 st.markdown("---")
 
-# 2. TRACKER DE SÉRIES (EXIBE TODAS AS TEMPORADAS)
+# 2. TRACKER DE SÉRIES (COMPACTADO POR TÍTULO DA SÉRIE)
 with aba_series:
     data_s = load_data("SÉRIES")
     if not data_s.empty:
@@ -208,19 +209,32 @@ with aba_series:
 
         st.divider()
 
+        # Agrupamento por Série
+        grouped_series = df_s.groupby("Série", sort=False)
+        series_list = list(grouped_series)
+
         cols_s = st.columns(2)
-        for idx, (_, row) in enumerate(df_s.iterrows()):
+        for idx, (nome_serie, grupo) in enumerate(series_list):
+            clean_s_title = str(nome_serie).replace("**", "").strip()
+            streaming_info = grupo["Streaming"].dropna().iloc[0] if not grupo["Streaming"].dropna().empty else "Streaming"
+            
             with cols_s[idx % 2]:
                 c1, c2 = st.columns([1, 4])
-                clean_s_title = str(row["Série"]).replace("**", "").strip()
                 with c1:
                     poster_url = fetch_online_poster(clean_s_title)
                     st.image(poster_url)
                 with c2:
                     st.write(f"**#{idx+1} - {clean_s_title}**")
-                    st.caption(f"📺 {row['Temporada']} | 🍿 {row['Streaming']}")
-                    is_finalizada = (str(row["Status"]).upper().strip() == "FINALIZADA")
-                    st.checkbox("Finalizada", value=is_finalizada, key=f"serie_{idx}")
+                    st.caption(f"🍿 {streaming_info} | {len(grupo)} Temporada(s)")
+                    
+                    # Lista de temporadas agrupadas
+                    for temp_idx, (_, row) in enumerate(grupo.iterrows()):
+                        is_finalizada = (str(row["Status"]).upper().strip() == "FINALIZADA")
+                        st.checkbox(
+                            f"{row['Temporada']}", 
+                            value=is_finalizada, 
+                            key=f"serie_{idx}_temp_{temp_idx}"
+                        )
                 st.markdown("---")
 
 # 3. UNIVERSO MARVEL
