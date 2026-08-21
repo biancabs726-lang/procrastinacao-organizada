@@ -78,7 +78,6 @@ def load_auxiliary_map():
     df_aux = load_data("CAPAS_E_PDFS")
     aux_map = {}
     if not df_aux.empty:
-        # Pega a partir da linha 2 (ignora cabeçalho "TITULO | CAPA | PDF")
         df_clean = df_aux.iloc[1:].copy()
         for _, row in df_clean.iterrows():
             titulo = str(row[0]).strip().lower() if pd.notna(row[0]) else ""
@@ -88,13 +87,15 @@ def load_auxiliary_map():
                 aux_map[titulo] = {"capa": capa, "pdf": pdf}
     return aux_map
 
-# BUSCADOR FALLBACK DE CAPAS ONLINE
+# BUSCADOR DE CAPAS ONLINE COM VALIDAÇÃO DE EXTENSÃO
 @st.cache_data(ttl=86400)
 def fetch_online_poster(title_text):
     clean_title = re.sub(r'[^\w\s]', '', str(title_text)).replace("**", "").strip()
     if not clean_title or clean_title.lower() in ["nan", "none"]:
-        return "https://via.placeholder.com/150x225/f1f5f9/475569?text=Sem+Capa"
+        encoded = urllib.parse.quote("Sem Capa")
+        return f"https://via.placeholder.com/150x225/f1f5f9/475569?text={encoded}"
 
+    # Tenta Google Books API
     try:
         url_gb = f"https://www.googleapis.com/books/v1/volumes?q={urllib.parse.quote(clean_title)}&maxResults=1"
         res_gb = requests.get(url_gb, timeout=2).json()
@@ -109,10 +110,20 @@ def fetch_online_poster(title_text):
     encoded = urllib.parse.quote(clean_title[:15])
     return f"https://via.placeholder.com/150x225/f1f5f9/475569?text={encoded}"
 
+# VERIFICA SE A URL É UM LINK DE IMAGEM DIRETO
+def is_direct_image_url(url):
+    if not url or not url.startswith("http"):
+        return False
+    # Evita URLs de páginas html comuns que causam ícone 🖼️0
+    invalid_domains = ["wikipedia.org/wiki/", "imdb.com/title/", "adorocinema.com/", "fandom.com/"]
+    if any(domain in url.lower() for domain in invalid_domains):
+        return False
+    valid_extensions = [".jpg", ".jpeg", ".png", ".webp", "m.media-amazon.com", "covers.openlibrary.org"]
+    return any(ext in url.lower() for ext in valid_extensions)
+
 # HELPER: CONVERTE LINK DO GOOGLE DRIVE EM EMBED
 def get_drive_embed_url(url):
     if "drive.google.com" in url:
-        # Extrai o ID do arquivo
         match = re.search(r'/d/([a-zA-Z0-9_-]+)', url)
         if match:
             file_id = match.group(1)
@@ -194,7 +205,7 @@ with aba_livros:
                 pdf_url = aux_info.get("pdf", "")
 
                 with c1:
-                    if capa_url and capa_url.startswith("http"):
+                    if is_direct_image_url(capa_url):
                         st.image(capa_url)
                     else:
                         img_fallback = fetch_online_poster(row["Título"])
@@ -203,7 +214,6 @@ with aba_livros:
                     st.write(f"**#{inicio + idx + 1} - {row['Título']}**")
                     st.caption(f"✍️ {row['Autor']} | 🏷️ {row['Gênero']}")
                     
-                    # LEITOR EMBUTIDO (OPÇÃO B)
                     if pdf_url and pdf_url.startswith("http"):
                         embed_link = get_drive_embed_url(pdf_url)
                         with st.expander("📖 Ler Livro"):
@@ -265,7 +275,7 @@ with aba_series:
                 capa_url = aux_info.get("capa", "")
 
                 with c1:
-                    if capa_url and capa_url.startswith("http"):
+                    if is_direct_image_url(capa_url):
                         st.image(capa_url)
                     else:
                         poster_url = fetch_online_poster(clean_s_title)
@@ -345,7 +355,7 @@ with aba_marvel:
                 capa_url = aux_info.get("capa", "")
 
                 with c1:
-                    if capa_url and capa_url.startswith("http"):
+                    if is_direct_image_url(capa_url):
                         st.image(capa_url)
                     else:
                         poster_url = fetch_online_poster(clean_m_title)
